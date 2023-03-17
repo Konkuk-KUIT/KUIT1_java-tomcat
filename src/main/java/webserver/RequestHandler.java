@@ -2,6 +2,7 @@ package webserver;
 
 import db.MemoryUserRepository;
 import db.Repository;
+import http.request.RequestURL;
 import http.util.HttpRequestUtils;
 import model.User;
 import http.util.IOUtils;
@@ -17,20 +18,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static http.request.RequestURL.*;
 import static http.util.HttpRequestUtils.*;
 
 public class RequestHandler implements Runnable{
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
-    private static final String ROOT_URL = "./webapp";
-    private static final String HOME_URL = "/index.html";
-    private static final String LOGIN_FAILED_URL = "/user/login_failed.html";
-    private static final String LOGIN_URL = "/user/login.html";
-    private static final String LIST_URL = "/user/list.html";
-
 
     private final Repository repository;
-    private final Path homePath = Paths.get(ROOT_URL + HOME_URL);
+    private final Path homePath = Paths.get(ROOT.getUrl() + INDEX.getUrl());
 
 
     public RequestHandler(Socket connection) {
@@ -73,7 +69,7 @@ public class RequestHandler implements Runnable{
 
             // 요구 사항 1번
             if (method.equals("GET") && url.endsWith(".html")) {
-                body = Files.readAllBytes(Paths.get(ROOT_URL + url));
+                body = Files.readAllBytes(Paths.get(ROOT.getUrl() + url));
             }
 
             if (url.equals("/")) {
@@ -86,7 +82,7 @@ public class RequestHandler implements Runnable{
                 Map<String, String> queryParameter = getQueryParameter(queryString);
                 User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
                 repository.addUser(user);
-                response302Header(dos,HOME_URL);
+                response302Header(dos, INDEX.getUrl());
                 return;
             }
 
@@ -102,10 +98,10 @@ public class RequestHandler implements Runnable{
             // 요구 사항 6번
             if (url.equals("/user/userList")) {
                 if (!cookie.equals("logined=true")) {
-                    response302Header(dos,LOGIN_URL);
+                    response302Header(dos, LOGIN.getUrl());
                     return;
                 }
-                body = Files.readAllBytes(Paths.get(ROOT_URL + LIST_URL));
+                body = Files.readAllBytes(Paths.get(ROOT.getUrl() + USER_LIST_HTML.getUrl()));
             }
 
             response200Header(dos, body.length);
@@ -118,10 +114,10 @@ public class RequestHandler implements Runnable{
 
     private void login(DataOutputStream dos, Map<String, String> queryParameter, User user) {
         if (user != null && user.getPassword().equals(queryParameter.get("password"))) {
-            response302HeaderWithCookie(dos,HOME_URL);
+            response302HeaderWithCookie(dos, INDEX.getUrl());
             return;
         }
-        response302Header(dos,LOGIN_FAILED_URL);
+        response302Header(dos, LOGIN_FAILED.getUrl());
     }
 
 
