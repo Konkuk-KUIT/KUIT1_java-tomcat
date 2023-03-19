@@ -23,4 +23,8 @@ public enum HttpMethod {
     public String getMethod() {
         return method;
     }
+
+    public boolean isEqual(String method) {
+        return this.method.equals(method);
+    }
 }
