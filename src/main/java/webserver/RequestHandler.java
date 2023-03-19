@@ -5,6 +5,7 @@ import db.Repository;
 import http.constants.HttpHeader;
 import http.constants.HttpMethod;
 import http.request.HttpRequest;
+import http.response.HttpResponse;
 import model.User;
 import http.util.IOUtils;
 import model.constants.UserQueryKey;
@@ -27,7 +28,6 @@ public class RequestHandler implements Runnable{
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
 
     private final Repository repository;
-    private final Path homePath = Paths.get(ROOT.getUrl() + INDEX.getUrl());
 
 
     public RequestHandler(Socket connection) {
@@ -42,20 +42,19 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            byte[] body = new byte[0];
-
             // Header 분석
             HttpRequest httpRequest = HttpRequest.from(br);
-
-            System.out.println(httpRequest.getUrl());
+            HttpResponse httpResponse = new HttpResponse(dos);
 
             // 요구 사항 1번
             if (httpRequest.getMethod().isEqual("GET") && httpRequest.getUrl().endsWith(".html")) {
-                body = Files.readAllBytes(Paths.get(ROOT.getUrl() + httpRequest.getUrl()));
+                httpResponse.forward(httpRequest.getUrl());
+                return;
             }
 
             if (httpRequest.getUrl().equals("/")) {
-                body = Files.readAllBytes(homePath);
+                httpResponse.forward(INDEX.getUrl());
+                return;
             }
 
             // 요구 사항 2,3,4번
@@ -67,7 +66,7 @@ public class RequestHandler implements Runnable{
                         queryParameter.get(UserQueryKey.NAME.getKey()),
                         queryParameter.get(UserQueryKey.EMAIL.getKey()));
                 repository.addUser(user);
-                response302Header(dos, INDEX.getUrl());
+                httpResponse.redirect(INDEX.getUrl());
                 return;
             }
 
@@ -75,7 +74,7 @@ public class RequestHandler implements Runnable{
             if (httpRequest.getUrl().equals("/user/login")) {
                 Map<String, String> queryParameter = httpRequest.getQueryParametersFromBody();
                 User user = repository.findUserById(queryParameter.get("userId"));
-                login(dos, queryParameter, user);
+                login(httpResponse, queryParameter, user);
                 return;
             }
 
@@ -85,11 +84,8 @@ public class RequestHandler implements Runnable{
                     response302Header(dos, LOGIN.getUrl());
                     return;
                 }
-                body = Files.readAllBytes(Paths.get(ROOT.getUrl() + USER_LIST_HTML.getUrl()));
+                httpResponse.forward(USER_LIST_HTML.getUrl());
             }
-
-            response200Header(dos, body.length);
-            responseBody(dos, body);
 
         } catch (Exception e) {
             log.log(Level.SEVERE,e.getMessage());
@@ -97,12 +93,13 @@ public class RequestHandler implements Runnable{
         }
     }
 
-    private void login(DataOutputStream dos, Map<String, String> queryParameter, User user) {
+    private void login(HttpResponse response, Map<String, String> queryParameter, User user) throws IOException {
         if (user != null && user.getPassword().equals(queryParameter.get("password"))) {
-            response302HeaderWithCookie(dos, INDEX.getUrl());
+            response.put(HttpHeader.SET_COOKIE,"logined=true");
+            response.redirect(INDEX.getUrl());
             return;
         }
-        response302Header(dos, LOGIN_FAILED.getUrl());
+        response.redirect(LOGIN_FAILED.getUrl());
     }
 
 
