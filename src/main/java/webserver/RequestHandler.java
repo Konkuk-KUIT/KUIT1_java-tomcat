@@ -81,7 +81,7 @@ public class RequestHandler implements Runnable{
             // 요구 사항 6번
             if (httpRequest.getUrl().equals("/user/userList")) {
                 if (!httpRequest.getHeader(HttpHeader.COOKIE).equals("logined=true")) {
-                    response302Header(dos, LOGIN.getUrl());
+                    httpResponse.redirect(LOGIN.getUrl());
                     return;
                 }
                 httpResponse.forward(USER_LIST_HTML.getUrl());
@@ -100,49 +100,6 @@ public class RequestHandler implements Runnable{
             return;
         }
         response.redirect(LOGIN_FAILED.getUrl());
-    }
-
-
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
-    }
-
-    private void response302Header(DataOutputStream dos, String path) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Location: " + path + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
-    }
-
-    private void response302HeaderWithCookie(DataOutputStream dos, String path) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
-            dos.writeBytes("Location: " + path + "\r\n");
-            dos.writeBytes("Set-Cookie: logined=true" + "\r\n");
-
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
     }
 
 }
