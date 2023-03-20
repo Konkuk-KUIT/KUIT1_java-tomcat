@@ -83,7 +83,7 @@ public class RequestHandler implements Runnable{
             // 요구 사항 2,3,4번
             if (url.equals("/user/signup")) {
                 String queryString = IOUtils.readData(br, requestContentLength);
-                Map<String, String> queryParameter = getQueryParameter(queryString);
+                Map<String, String> queryParameter = parseQueryParameter(queryString);
                 User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
                 repository.addUser(user);
                 response302Header(dos,HOME_URL);
@@ -93,7 +93,7 @@ public class RequestHandler implements Runnable{
             // 요구 사항 5번
             if (url.equals("/user/login")) {
                 String queryString = IOUtils.readData(br, requestContentLength);
-                Map<String, String> queryParameter = getQueryParameter(queryString);
+                Map<String, String> queryParameter = parseQueryParameter(queryString);
                 User user = repository.findUserById(queryParameter.get("userId"));
                 login(dos, queryParameter, user);
                 return;
