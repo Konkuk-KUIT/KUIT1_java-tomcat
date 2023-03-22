@@ -13,17 +13,15 @@ public class RequestMapper {
     private final HttpRequest httpRequest;
     private final HttpResponse httpResponse;
 
-    private final Map<String, Controller> controllers = new HashMap<>();
+    private static final Map<String, Controller> controllers = new HashMap<>();
     private final Controller controller;
 
     public RequestMapper(HttpRequest httpRequest, HttpResponse httpResponse) {
-        initControllers();
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
         controller = controllers.get(httpRequest.getUrl());
     }
-
-    private void initControllers() {
+    static {
         controllers.put(RequestURL.SIGNUP.getUrl(),new SignUpController());
         controllers.put(RequestURL.LOGIN_POST.getUrl(), new LoginController());
         controllers.put(RequestURL.USER_LIST.getUrl(), new ListController());
