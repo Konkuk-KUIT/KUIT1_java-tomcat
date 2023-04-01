@@ -7,7 +7,7 @@ Step 2 - 객체지향적인 고민을 통한 리팩토링.<br><br>
 
 ***
 ## 요구사항
-> #### 요구사항 1: index.html 반환하기
+> #### ~~요구사항 1: index.html 반환하기~~
 
 클라이언트에서 `http://localhost:{port}/` 혹은 `http://localhost:{port}/index.html` 요청이 올 시에
 webapp 폴더의 'index.html' 화면을 반환한다.
