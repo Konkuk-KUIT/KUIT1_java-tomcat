@@ -22,20 +22,26 @@ public class RequestHandler implements Runnable{
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()){
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
-            final String homeUrl = "./webapp/index.html";
+            final String homePath = "./webapp";
+            final String homeUrl = "/index.html";
 
             String startLines[] = br.readLine().split(" ");
             String method = startLines[0];
             String url = startLines[1];
+            String type = "";
 
-            // 요구사항 1
-            System.out.println(method +"\t"+ url);
+            // TODO: method & url 출력문 제거
+            // System.out.println(method +"\t"+ url);
+
+
+            // 요구사항 1 - 홈 화면 index.html 반환
             byte[] body = new byte[0];
             if (method.equals("GET") && (url.equals("/") || url.equals("/index.html"))){
-                body = Files.readAllBytes(new File(homeUrl).toPath());
+                body = Files.readAllBytes(new File(homePath+homeUrl).toPath());
+                type = "html";
             }
 
-            response200Header(dos, body.length);
+            response200Header(dos, body.length, type);
             responseBody(dos, body);
 
         } catch (IOException e) {
@@ -43,10 +49,10 @@ public class RequestHandler implements Runnable{
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String type) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: text/"+ type + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
