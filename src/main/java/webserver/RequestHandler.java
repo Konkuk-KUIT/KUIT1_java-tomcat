@@ -78,7 +78,7 @@ public class RequestHandler implements Runnable{
                 type = "css";
             }
 
-            // 요구사항 2 - GET 방식으로 회원가입하기
+            // 요구사항 2/3 - GET/POST 방식으로 회원가입하기
             if (url.equals("/user/signup")){
                 String queryString = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryData = parseQueryString(queryString);
