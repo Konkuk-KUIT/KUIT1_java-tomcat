@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class RequestHandler implements Runnable{
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
+    private final Repository repository = MemoryUserRepository.getInstance();
 
     public RequestHandler(Socket connection) {
         this.connection = connection;
@@ -38,7 +39,7 @@ public class RequestHandler implements Runnable{
             DataOutputStream dos = new DataOutputStream(out);
             final String homePath = "./webapp";
             final String homeUrl = "/index.html";
-            final Repository repository;
+            final String loginFailedUrl = "/user/login_failed.html";
 
             String startLines[] = br.readLine().split(" ");
             String method = startLines[0];
@@ -72,8 +73,7 @@ public class RequestHandler implements Runnable{
 
             // 요구사항 7 - css 적용
             if (url.endsWith(".css")){
-                if (url.startsWith("/user"))
-                    url = url.substring(5);
+                if (url.startsWith("/user")) url = url.replace("/user", "");
                 body = Files.readAllBytes(new File(homePath+url).toPath());
                 type = "css";
             }
@@ -83,12 +83,26 @@ public class RequestHandler implements Runnable{
                 String queryString = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryData = parseQueryParameter(queryString);
 
-                repository = MemoryUserRepository.getInstance();
                 User user = new User(queryData.get("userId"), queryData.get("password"), queryData.get("name"), queryData.get("email"));
                 repository.addUser(user);
 
                 response302Header(dos, homeUrl);
                 return;
+            }
+
+            // 요구사항 5 - 로그인하기
+            if (url.equals("/user/login")){
+                String queryString = IOUtils.readData(br, requestContentLength);
+                System.out.println(queryString+"\n\n");
+                Map<String, String> queryData = parseQueryParameter(queryString);
+
+                User user = repository.findUserById(queryData.get("userId"));
+                if (user != null && user.getPassword().equals(queryData.get("password"))){
+                    System.out.println("로그인 정보 맞음" + "\n\n");
+                    response302HeaderLogin(dos, homeUrl);
+                    return;
+                }
+                response302Header(dos, loginFailedUrl);
             }
 
             response200Header(dos, body.length, type);
@@ -114,6 +128,17 @@ public class RequestHandler implements Runnable{
         try {
             dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
             dos.writeBytes("Location: "+ path + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    private void response302HeaderLogin(DataOutputStream dos, String path) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: "+ path + "\r\n");
+            dos.writeBytes("Cookie: logined=true \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
