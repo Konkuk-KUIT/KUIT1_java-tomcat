@@ -24,7 +24,7 @@ MemoryUserRepository에 정보를 받아와 다시 index.html 화면을 띄운�
 
 <br><br>
 
-> #### 요구사항 3: POST 방식으로 회원가입하기
+> #### ~~요구사항 3: POST 방식으로 회원가입하기~~
 
 위 GET 방식으로 구현했다면 이번엔 form.html의 form 태그의 method를 post로 변경하고 post 방식으로 로그인되게끔 변경해보자.
 
