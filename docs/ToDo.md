@@ -31,7 +31,7 @@ MemoryUserRepository에 정보를 받아와 다시 index.html 화면을 띄운�
 이외의 작업은 위 2번과 동일하다.
 <br><br>
 
-> #### 요구사항 4: 302 status code 적용
+> #### ~~요구사항 4: 302 status code 적용~~
 
 현재는 post signup이 끝났을 때 반환되는 웹페이지는 index.html이지만, 위 브라우저에는 여전히 ~/user/signup 일 것이다. 
 
