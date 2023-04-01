@@ -48,7 +48,7 @@ MemoryUserRepository에 정보를 받아와 다시 index.html 화면을 띄운�
 로그인이 실패한다면 logined_failed.html로 redirect한다.
 <br><br>
 
-> #### 요구사항 6: 사용자 목록 출력
+> #### ~~요구사항 6: 사용자 목록 출력~~
 
 위 요구사항 5번에서 Set-Cookie가 잘 동작되었다면,
 클라이언트가 다시 서버에 요청할 때 자동으로 헤더에 Cookie: logined=true가 추가되어있을 것이다.
