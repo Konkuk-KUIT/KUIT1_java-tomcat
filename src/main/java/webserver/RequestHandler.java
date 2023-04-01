@@ -41,6 +41,12 @@ public class RequestHandler implements Runnable{
                 type = "html";
             }
 
+            // 요구사항 7 - css 적용
+            if (url.endsWith("css")){
+                body = Files.readAllBytes(new File(homePath+url).toPath());
+                type = "css";
+            }
+
             response200Header(dos, body.length, type);
             responseBody(dos, body);
 
