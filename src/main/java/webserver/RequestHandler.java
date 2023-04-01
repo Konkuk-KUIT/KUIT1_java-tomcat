@@ -138,7 +138,7 @@ public class RequestHandler implements Runnable{
         try {
             dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
             dos.writeBytes("Location: "+ path + "\r\n");
-            dos.writeBytes("Cookie: logined=true \r\n");
+            dos.writeBytes("Set-Cookie: logined=true \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
