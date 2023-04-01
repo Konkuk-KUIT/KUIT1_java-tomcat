@@ -28,8 +28,10 @@ public class RequestHandler implements Runnable{
             String method = startLines[0];
             String url = startLines[1];
 
+            // 요구사항 1
+            System.out.println(method +"\t"+ url);
             byte[] body = new byte[0];
-            if (method.equals("GET") && url.equals("/")){
+            if (method.equals("GET") && (url.equals("/") || url.equals("/index.html"))){
                 body = Files.readAllBytes(new File(homeUrl).toPath());
             }
 
