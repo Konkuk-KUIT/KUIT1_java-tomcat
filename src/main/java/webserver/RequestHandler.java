@@ -87,8 +87,8 @@ public class RequestHandler implements Runnable{
                 User user = new User(queryData.get("userId"), queryData.get("password"), queryData.get("name"), queryData.get("email"));
                 repository.addUser(user);
 
-                body = Files.readAllBytes(new File(homePath+homeUrl).toPath());
-                type = "html";
+                response302Header(dos, homeUrl);
+                return;
             }
 
             response200Header(dos, body.length, type);
@@ -104,6 +104,16 @@ public class RequestHandler implements Runnable{
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/"+ type + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    private void response302Header(DataOutputStream dos, String path) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: "+ path + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
