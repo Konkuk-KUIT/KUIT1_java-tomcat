@@ -39,25 +39,38 @@ public class RequestHandler implements Runnable{
             DataOutputStream dos = new DataOutputStream(out);
             final String homePath = "./webapp";
             final String homeUrl = "/index.html";
+            final String loginUrl = "/user/login.html";
             final String loginFailedUrl = "/user/login_failed.html";
+            final String userListUrl = "/user/list.html";
 
             String startLines[] = br.readLine().split(" ");
             String method = startLines[0];
             String url = startLines[1];
             String type = "";
+
+            System.out.println(url);
+            // /user 중첩 문제 해결
+            if (url.startsWith("/user")){
+                url = url.replace("/user", "");
+                url = "/user" + url;
+            }
+
             int requestContentLength = 0;
+            String cookie = "";
 
             byte[] body = new byte[0];
 
             // TODO: method & url 출력문 제거
             System.out.println(method +"\t"+ url);
+
+            // 헤더 내용
             while(true){
                 String temp = br.readLine();
+
                 if(temp.equals("")) break;
-                if(temp.startsWith("Content-Length")){
-                    temp = temp.split(": ")[1];
-                    requestContentLength = Integer.parseInt(temp);
-                }
+                if(temp.startsWith("Content-Length")) requestContentLength = Integer.parseInt(temp.split(": ")[1]);
+                if(temp.startsWith("Cookie")) cookie = temp.split(": ")[1];
+
                 System.out.println(temp);
             }
 
@@ -93,16 +106,24 @@ public class RequestHandler implements Runnable{
             // 요구사항 5 - 로그인하기
             if (url.equals("/user/login")){
                 String queryString = IOUtils.readData(br, requestContentLength);
-                System.out.println(queryString+"\n\n");
                 Map<String, String> queryData = parseQueryParameter(queryString);
 
                 User user = repository.findUserById(queryData.get("userId"));
                 if (user != null && user.getPassword().equals(queryData.get("password"))){
-                    System.out.println("로그인 정보 맞음" + "\n\n");
                     response302HeaderLogin(dos, homeUrl);
                     return;
                 }
                 response302Header(dos, loginFailedUrl);
+            }
+
+            // 요구사항 6 - 사용자 목록 출력
+            if (url.equals("/user/userList")){
+                if (!cookie.equals("logined=true")){
+                    response302Header(dos, loginUrl);
+                    return;
+                }
+                body = Files.readAllBytes(Paths.get(homePath+userListUrl));
+                type = "html";
             }
 
             response200Header(dos, body.length, type);
