@@ -13,12 +13,15 @@ Step 2 - 객체지향적인 고민을 통한 리팩토링.<br><br>
 webapp 폴더의 'index.html' 화면을 반환한다.
 <br><br>
 
-> #### 요구사항 2: GET 방식으로 회원가입하기
+> #### _~~요구사항 2: GET 방식으로 회원가입하기~~_ 
 
 로그인 하기 위해 SignUp 버튼을 클릭하면 user/form.html 화면으로 이동해야 한다. 
 
 form.html 에서 정보를 입력한 뒤 회원 가입하면 url의 쿼리스트링으로부터
 MemoryUserRepository에 정보를 받아와 다시 index.html 화면을 띄운다.
+
+- `처음부터 form.html의 form 태그가 post로 되어있어 생략`
+
 <br><br>
 
 > #### 요구사항 3: POST 방식으로 회원가입하기
