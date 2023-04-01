@@ -81,7 +81,7 @@ public class RequestHandler implements Runnable{
             // 요구사항 2/3 - GET/POST 방식으로 회원가입하기
             if (url.equals("/user/signup")){
                 String queryString = IOUtils.readData(br, requestContentLength);
-                Map<String, String> queryData = parseQueryString(queryString);
+                Map<String, String> queryData = parseQueryParameter(queryString);
 
                 repository = MemoryUserRepository.getInstance();
                 User user = new User(queryData.get("userId"), queryData.get("password"), queryData.get("name"), queryData.get("email"));
@@ -97,19 +97,6 @@ public class RequestHandler implements Runnable{
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
-    }
-
-    private Map<String, String> parseQueryString(String queryString) {
-        Map<String, String> queryMap = new HashMap<>();
-
-        String[] queryStrings = queryString.split("&");
-        for(String tempQueryString : queryStrings){
-            System.out.println(tempQueryString);
-            String[] query = tempQueryString.split("=");
-            queryMap.put(query[0], query[1]);
-        }
-
-        return queryMap;
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String type) {
