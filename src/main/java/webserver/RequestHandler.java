@@ -51,8 +51,13 @@ public class RequestHandler implements Runnable{
             System.out.println(url);
             // /user 중첩 문제 해결
             if (url.startsWith("/user")){
-                url = url.replace("/user", "");
-                url = "/user" + url;
+                String[] urlDatas = url.split("/");
+                StringBuilder sb = new StringBuilder();
+                sb.append("/user");
+                for(String tempStr : urlDatas){
+                    System.out.println(tempStr);
+                    if(!tempStr.equals("user")) sb.append("/").append(tempStr);
+                }
             }
 
             int requestContentLength = 0;
