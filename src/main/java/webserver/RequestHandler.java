@@ -2,6 +2,7 @@ package webserver;
 
 import webserver.CustomHandler.CustomHandler;
 import webserver.CustomHandler.IndexHandler;
+import webserver.CustomHandler.UserFormHandler;
 
 import java.io.*;
 import java.net.Socket;
@@ -21,8 +22,9 @@ public class RequestHandler implements Runnable{
     }
 
     private void handlerMapping() {
-        handlerMappingMap.put("index.html", new IndexHandler());
-        handlerMappingMap.put("", new IndexHandler());
+        handlerMappingMap.put("/index.html", new IndexHandler());
+        handlerMappingMap.put("/", new IndexHandler());
+        handlerMappingMap.put("/user/form.html", new UserFormHandler());
     }
 
     @Override
@@ -50,9 +52,8 @@ public class RequestHandler implements Runnable{
 
     private static String getRequestTarget(BufferedReader br) throws IOException {
         String startLine = br.readLine();
-        String[] split = startLine.split("/");
-        String[] s1 = split[1].split(" ");
-        return s1[0];
+        String[] split = startLine.split(" ");
+        return split[1];
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
