@@ -16,8 +16,9 @@ import java.util.logging.Logger;
 
 public class RequestHandler implements Runnable{
     Socket connection;
-    private static final String ROOT_OF_HTML = "./webapp";
-    private static final String MAIN_URL = "/index.html";
+    private static final String ROOT = "./webapp";
+    private static final String MAIN_PATH = "/index.html";
+
     private final Repository repository;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
 
@@ -57,6 +58,7 @@ public class RequestHandler implements Runnable{
         // header 정보 파싱
         while (true) {
             final String line = br.readLine();
+
             if (line.equals("")) {
                 break;
             }
@@ -64,8 +66,8 @@ public class RequestHandler implements Runnable{
             if (line.startsWith("Content-Length")) {
                 contentLength = Integer.parseInt(line.split(": ")[1]);
             }
-            if(line.startsWith("Cookie")){
-                cookie = line.split(": ")[1];
+            if (line.startsWith("Cookie")) {
+                cookie = line.split(": ")[1].strip();
             }
         }
 
@@ -74,33 +76,26 @@ public class RequestHandler implements Runnable{
          ****************************** */
         // 아무런 입력이 없다면 MAIN_URL(==index.html)로
         if(requestUrl.equals("/")){
-            requestUrl = MAIN_URL;
+            requestUrl = MAIN_PATH;
         }
         if(method.equals("GET") && requestUrl.endsWith(".html")) {
-            body = Files.readAllBytes(Paths.get(ROOT_OF_HTML + requestUrl));
+            body = Files.readAllBytes(Paths.get(ROOT + requestUrl));
         }
 
+
         /* ****************************
-                  요구사항 2, 4
+                 요구사항 2, 3, 4
          ****************************** */
-        if(method.equals("GET") && requestUrl.equals("/user/signup")){
-            String query = requestUrl.split("\\?")[1];
+        if(requestUrl.equals("/user/signup")) {
+            String query = null;
+            if(method.equals("GET"))
+                query = requestUrl.split("\\?")[1];
+            if(method.equals("POST"))
+                query = IOUtils.readData(br, contentLength);
             Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
             User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
             repository.addUser(user);
-            response302Header(dos, MAIN_URL);
-            return;
-        }
-
-        /* ****************************
-                  요구사항 3, 4
-         ****************************** */
-        if(method.equals("POST") && requestUrl.equals("/user/signup")) {
-            String query = IOUtils.readData(br, contentLength);
-            Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
-            User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
-            repository.addUser(user);
-            response302Header(dos, MAIN_URL);
+            response302Header(dos, MAIN_PATH);
             return;
         }
 
@@ -113,7 +108,7 @@ public class RequestHandler implements Runnable{
             Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
             User user = repository.findUserById(queries.get("userId"));
             if(user != null && user.getPassword().equals(queries.get("password"))){
-                response302HeaderWithCookie(dos, MAIN_URL);
+                response302HeaderWithCookie(dos, MAIN_PATH);
                 return;
             }
             // 실패시
@@ -123,17 +118,48 @@ public class RequestHandler implements Runnable{
         /* ****************************
                     요구사항 6
          ****************************** */
+        if(requestUrl.equals("/user/userList")){ // login.html에 action 존재. post 방식
+            if(!cookie.equals("logined=true")){
+                // 로그인 하지 않은 유저
+                response302Header(dos, "/user/login.html");
+                return;
+            }
+            response302Header(dos,  "/user/list.html");
+            return;
+        }
+
+        /* ****************************
+                    요구사항 7
+         ****************************** */
+        if(requestUrl.endsWith(".css")){
+            body = Files.readAllBytes(Paths.get(ROOT + requestUrl));
+            response200HeaderCss(dos, body.length);
+            responseBody(dos, body);
+            return;
+        }
 
         response200Header(dos, body.length);
         responseBody(dos, body);
 
     }
 
+    private void response200HeaderCss(DataOutputStream dos, int lengthOfBodyContent) {
+        try {
+            dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+
+    }
+
     private void response302HeaderWithCookie(DataOutputStream dos, String redirectURL) {
         try {
-            dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Location: " + redirectURL + "\r\n");
-            dos.writeBytes("Cookie: logined=true"+"\r\n");
+            dos.writeBytes("Set-Cookie: logined=true" + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
@@ -142,7 +168,7 @@ public class RequestHandler implements Runnable{
 
     private void response302Header(DataOutputStream dos, String redirectURL) {
         try {
-            dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Location: " + redirectURL+"\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
