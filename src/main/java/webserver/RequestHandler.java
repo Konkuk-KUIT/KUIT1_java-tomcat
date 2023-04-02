@@ -1,7 +1,12 @@
 package webserver;
 
+import http.util.IOUtils;
+
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,14 +20,30 @@ public class RequestHandler implements Runnable{
 
     @Override
     public void run() {
-        log.log(Level.INFO, "New Client Connect! Connected IP : " + connection.getInetAddress() + ", Port : " + connection.getPort());
+        log.log(Level.INFO, "[RequestHandler] New Client Connect! Connected IP : " + connection.getInetAddress() + ", Port : " + connection.getPort());
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()){
+
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            byte[] body = "Hello World".getBytes();
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            String startLine = br.readLine();
+            String[] split = startLine.split("/");
+            String[] s1 = split[1].split(" ");
+
+            System.out.println("s1[0] = " + s1[0]);
+            if (!s1[0].equals("") && !s1[0].equals("index.html")) {
+                System.out.println("error");
+                return;
+            }
+
+            String requestTarget = "webapp/index.html";
+            File file = new File(requestTarget);
+            BufferedReader fr = new BufferedReader(new FileReader(file));
+            String fileData = IOUtils.readData(fr, (int) file.length());
+            byte[] bytes = fileData.getBytes();
+
+            response200Header(dos, bytes.length);
+            responseBody(dos, bytes);
 
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
