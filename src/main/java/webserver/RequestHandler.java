@@ -1,7 +1,10 @@
 package webserver;
 
+import http.util.HttpRequestUtils;
+import http.util.IOUtils;
 import webserver.CustomHandler.CustomHandler;
 import webserver.CustomHandler.IndexHandler;
+import webserver.CustomHandler.SignUpHandler;
 import webserver.CustomHandler.UserFormHandler;
 
 import java.io.*;
@@ -25,6 +28,7 @@ public class RequestHandler implements Runnable{
         handlerMappingMap.put("/index.html", new IndexHandler());
         handlerMappingMap.put("/", new IndexHandler());
         handlerMappingMap.put("/user/form.html", new UserFormHandler());
+        handlerMappingMap.put("/user/signup", new SignUpHandler());
     }
 
     @Override
@@ -38,9 +42,10 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            CustomHandler handler = handlerMappingMap.get(getRequestTarget(br));
-
-            byte[] bytes = handler.process();
+            String uri = getURIFromRequestTarget(getRequestTarget(br));
+            CustomHandler handler = handlerMappingMap.get(uri);
+            Map<String, String> paramMap = HttpRequestUtils.parseQueryParameter(IOUtils.readData(br, br.read()));
+            byte[] bytes = handler.process(paramMap);
 
             response200Header(dos, bytes.length);
             responseBody(dos, bytes);
@@ -54,6 +59,11 @@ public class RequestHandler implements Runnable{
         String startLine = br.readLine();
         String[] split = startLine.split(" ");
         return split[1];
+    }
+
+    private static String getURIFromRequestTarget(String RequestTarget) throws IOException {
+        String[] split = RequestTarget.split("\\?");
+        return split[0];
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
