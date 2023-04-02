@@ -36,11 +36,8 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            String startLine = br.readLine();
-            String[] split = startLine.split("/");
-            String[] s1 = split[1].split(" ");
+            CustomHandler handler = handlerMappingMap.get(getRequestTarget(br));
 
-            CustomHandler handler = handlerMappingMap.get(s1[0]);
             byte[] bytes = handler.process();
 
             response200Header(dos, bytes.length);
@@ -49,6 +46,13 @@ public class RequestHandler implements Runnable{
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
+    }
+
+    private static String getRequestTarget(BufferedReader br) throws IOException {
+        String startLine = br.readLine();
+        String[] split = startLine.split("/");
+        String[] s1 = split[1].split(" ");
+        return s1[0];
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
