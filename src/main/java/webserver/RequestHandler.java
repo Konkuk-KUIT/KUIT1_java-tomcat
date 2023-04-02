@@ -96,6 +96,16 @@ public class RequestHandler implements Runnable{
             repository.addUser(user);
         }
 
+        /* ****************************
+                    요구사항 3
+         ****************************** */
+        if(method.equals("POST") && requestUrl.contains("/user/signup")) {
+            String query = IOUtils.readData(br, contentLength);
+            Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
+            User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
+            repository.addUser(user);
+        }
+
         return body;
     }
 
