@@ -27,6 +27,7 @@ public class RequestHandler implements Runnable{
         handlerMappingMap.put("/user/form.html", new SignUpFormHandler());
         handlerMappingMap.put("/user/signup", new SignUpHandler());
         handlerMappingMap.put("/user/login.html", new LoginFormHandler());
+        handlerMappingMap.put("/user/login_failed.html", new LoginFailFormHandler());
     }
 
     @Override
