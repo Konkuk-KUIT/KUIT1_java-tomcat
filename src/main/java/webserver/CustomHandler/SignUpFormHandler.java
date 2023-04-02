@@ -8,7 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
-public class UserFormHandler implements CustomHandler{
+public class SignUpFormHandler implements CustomHandler{
 
     private final File file = new File("webapp/user/form.html");
 

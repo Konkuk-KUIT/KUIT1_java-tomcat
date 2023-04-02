@@ -2,10 +2,7 @@ package webserver;
 
 import http.util.HttpRequestUtils;
 import http.util.IOUtils;
-import webserver.CustomHandler.CustomHandler;
-import webserver.CustomHandler.IndexHandler;
-import webserver.CustomHandler.SignUpHandler;
-import webserver.CustomHandler.UserFormHandler;
+import webserver.CustomHandler.*;
 
 import java.io.*;
 import java.net.Socket;
@@ -27,8 +24,9 @@ public class RequestHandler implements Runnable{
     private void handlerMapping() {
         handlerMappingMap.put("/index.html", new IndexHandler());
         handlerMappingMap.put("/", new IndexHandler());
-        handlerMappingMap.put("/user/form.html", new UserFormHandler());
+        handlerMappingMap.put("/user/form.html", new SignUpFormHandler());
         handlerMappingMap.put("/user/signup", new SignUpHandler());
+        handlerMappingMap.put("/user/login.html", new LoginFormHandler());
     }
 
     @Override
