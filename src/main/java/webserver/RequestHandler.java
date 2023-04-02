@@ -43,6 +43,7 @@ public class RequestHandler implements Runnable{
             DataOutputStream dos = new DataOutputStream(out);
 
             String uri = getURIFromRequestTarget(getRequestTarget(br));
+            System.out.println("uri = " + uri);
             CustomHandler handler = handlerMappingMap.get(uri);
 
             Map<String, String> paramMap =
@@ -50,6 +51,10 @@ public class RequestHandler implements Runnable{
 
             byte[] bytes = handler.process(paramMap);
 
+            if (uri.equals("/user/signup")) {
+                response302Header(dos);
+                return;
+            }
             response200Header(dos, bytes.length);
             responseBody(dos, bytes);
 
@@ -89,6 +94,16 @@ public class RequestHandler implements Runnable{
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    private void response302Header(DataOutputStream dos) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 OK \r\n");
+            dos.writeBytes("Location: /index.html \r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
