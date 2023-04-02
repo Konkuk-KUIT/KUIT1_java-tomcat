@@ -42,7 +42,8 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            String uri = getURIFromRequestTarget(getRequestTarget(br));
+            String startLine = getStartLine(br);
+            String uri = getURIFromRequestTarget(getRequestTarget(startLine));
             System.out.println("uri = " + uri);
             CustomHandler handler = handlerMappingMap.get(uri);
 
@@ -51,7 +52,7 @@ public class RequestHandler implements Runnable{
 
             byte[] bytes = handler.process(paramMap);
 
-            if (uri.equals("/user/signup")) {
+            if (getHTTPMethod(startLine).equals("POST")) {
                 response302Header(dos);
                 return;
             }
@@ -78,8 +79,16 @@ public class RequestHandler implements Runnable{
         return requestContentLength;
     }
 
-    private static String getRequestTarget(BufferedReader br) throws IOException {
-        String startLine = br.readLine();
+    private static String getHTTPMethod(String startLine) throws IOException {
+        String[] split = startLine.split(" ");
+        return split[0];
+    }
+
+    private static String getStartLine(BufferedReader br) throws IOException {
+        return br.readLine();
+    }
+
+    private static String getRequestTarget(String startLine) throws IOException {
         String[] split = startLine.split(" ");
         return split[1];
     }
