@@ -44,7 +44,10 @@ public class RequestHandler implements Runnable{
 
             String uri = getURIFromRequestTarget(getRequestTarget(br));
             CustomHandler handler = handlerMappingMap.get(uri);
-            Map<String, String> paramMap = HttpRequestUtils.parseQueryParameter(IOUtils.readData(br, br.read()));
+
+            Map<String, String> paramMap =
+                    HttpRequestUtils.parseQueryParameter(IOUtils.readData(br, getRequestContentLength(br)));
+
             byte[] bytes = handler.process(paramMap);
 
             response200Header(dos, bytes.length);
@@ -53,6 +56,21 @@ public class RequestHandler implements Runnable{
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
+    }
+
+    private static int getRequestContentLength(BufferedReader br) throws IOException {
+        int requestContentLength = 0;
+        while (true) {
+            final String line = br.readLine();
+            if (line.equals("")) {
+                break;
+            }
+            // header info
+            if (line.startsWith("Content-Length")) {
+                requestContentLength = Integer.parseInt(line.split(": ")[1]);
+            }
+        }
+        return requestContentLength;
     }
 
     private static String getRequestTarget(BufferedReader br) throws IOException {
