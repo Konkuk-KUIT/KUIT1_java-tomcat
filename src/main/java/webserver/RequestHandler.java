@@ -1,10 +1,10 @@
 package webserver;
 
-import http.util.IOUtils;
+import webserver.CustomHandler.CustomHandler;
+import webserver.CustomHandler.IndexHandler;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -13,14 +13,24 @@ import java.util.logging.Logger;
 public class RequestHandler implements Runnable{
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
+    private final Map<String, CustomHandler> handlerMappingMap = new HashMap<>();
+
 
     public RequestHandler(Socket connection) {
         this.connection = connection;
     }
 
+    private void handlerMapping() {
+        handlerMappingMap.put("index.html", new IndexHandler());
+        handlerMappingMap.put("", new IndexHandler());
+    }
+
     @Override
     public void run() {
         log.log(Level.INFO, "[RequestHandler] New Client Connect! Connected IP : " + connection.getInetAddress() + ", Port : " + connection.getPort());
+
+        handlerMapping();
+
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()){
 
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -30,17 +40,8 @@ public class RequestHandler implements Runnable{
             String[] split = startLine.split("/");
             String[] s1 = split[1].split(" ");
 
-            System.out.println("s1[0] = " + s1[0]);
-            if (!s1[0].equals("") && !s1[0].equals("index.html")) {
-                System.out.println("error");
-                return;
-            }
-
-            String requestTarget = "webapp/index.html";
-            File file = new File(requestTarget);
-            BufferedReader fr = new BufferedReader(new FileReader(file));
-            String fileData = IOUtils.readData(fr, (int) file.length());
-            byte[] bytes = fileData.getBytes();
+            CustomHandler handler = handlerMappingMap.get(s1[0]);
+            byte[] bytes = handler.process();
 
             response200Header(dos, bytes.length);
             responseBody(dos, bytes);
