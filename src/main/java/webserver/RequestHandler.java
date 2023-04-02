@@ -10,14 +10,13 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RequestHandler implements Runnable{
     Socket connection;
-    private static final String ROOT = "./webapp";
+    private static final String ROOT_OF_HTML = "./webapp";
     private static final String MAIN_URL = "/index.html";
     private final Repository repository;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
@@ -35,18 +34,14 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            byte[] body = new byte[0];
-            body = readRequest(br, dos);
-
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            readRequest(br, dos);
 
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
     }
 
-    private byte[] readRequest(BufferedReader br, DataOutputStream dos) throws IOException {
+    private void readRequest(BufferedReader br, DataOutputStream dos) throws IOException {
 
         String startLine = br.readLine();
         String[] startLines = startLine.split(" ");
@@ -83,7 +78,7 @@ public class RequestHandler implements Runnable{
             requestUrl = MAIN_URL;
         }
         if(method.equals("GET") && requestUrl.endsWith(".html")) {
-            body = Files.readAllBytes(Paths.get(ROOT + requestUrl));
+            body = Files.readAllBytes(Paths.get(ROOT_OF_HTML + requestUrl));
         }
 
         /* ****************************
@@ -94,6 +89,8 @@ public class RequestHandler implements Runnable{
             Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
             User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
             repository.addUser(user);
+            response302Header(dos, MAIN_URL);
+            return;
         }
 
         /* ****************************
@@ -104,9 +101,23 @@ public class RequestHandler implements Runnable{
             Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
             User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
             repository.addUser(user);
+            response302Header(dos, MAIN_URL);
+            return;
         }
 
-        return body;
+        response200Header(dos, body.length);
+        responseBody(dos, body);
+
+    }
+
+    private void response302Header(DataOutputStream dos, String redirectURL) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+            dos.writeBytes("Location: " + redirectURL);
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
