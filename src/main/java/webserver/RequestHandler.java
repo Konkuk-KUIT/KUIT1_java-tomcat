@@ -49,26 +49,25 @@ public class RequestHandler implements Runnable{
         String requestUrl = startLines[1];
         String HTTP_version = startLines[2];
 
-        log.log(Level.INFO, "<" + requestUrl + ">");
-        log.log(Level.INFO, "<" + method + ">");
         byte[] body = new byte[0];
 
         int contentLength = 0;
+        String cookie = "";
 
         // header 정보 파싱
         while (true) {
             final String line = br.readLine();
-            log.log(Level.INFO, "line: "+ line);
             if (line.equals("")) {
                 break;
             }
             // header info
-            if (line.startsWith("Content-Length")) { // GET일 땐 x
-                log.log(Level.INFO, "Content-Length 발견");
+            if (line.startsWith("Content-Length")) {
                 contentLength = Integer.parseInt(line.split(": ")[1]);
             }
+            if(line.startsWith("Cookie")){
+                cookie = line.split(": ")[1];
+            }
         }
-
 
         /* ****************************
                     요구사항 1
@@ -82,9 +81,9 @@ public class RequestHandler implements Runnable{
         }
 
         /* ****************************
-                    요구사항 2
+                  요구사항 2, 4
          ****************************** */
-        if(method.equals("GET") && requestUrl.contains("/user/signup")){
+        if(method.equals("GET") && requestUrl.equals("/user/signup")){
             String query = requestUrl.split("\\?")[1];
             Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
             User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
@@ -94,9 +93,9 @@ public class RequestHandler implements Runnable{
         }
 
         /* ****************************
-                    요구사항 3
+                  요구사항 3, 4
          ****************************** */
-        if(method.equals("POST") && requestUrl.contains("/user/signup")) {
+        if(method.equals("POST") && requestUrl.equals("/user/signup")) {
             String query = IOUtils.readData(br, contentLength);
             Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
             User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
@@ -105,15 +104,46 @@ public class RequestHandler implements Runnable{
             return;
         }
 
+
+        /* ****************************
+                    요구사항 5
+         ****************************** */
+        if(requestUrl.equals("/user/login")){ // login.html에 action 존재. post 방식
+            String query = IOUtils.readData(br, contentLength);
+            Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
+            User user = repository.findUserById(queries.get("userId"));
+            if(user != null && user.getPassword().equals(queries.get("password"))){
+                response302HeaderWithCookie(dos, MAIN_URL);
+                return;
+            }
+            // 실패시
+            response302Header(dos, "/user/login_failed.html");
+        }
+
+        /* ****************************
+                    요구사항 6
+         ****************************** */
+
         response200Header(dos, body.length);
         responseBody(dos, body);
 
     }
 
+    private void response302HeaderWithCookie(DataOutputStream dos, String redirectURL) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
+            dos.writeBytes("Location: " + redirectURL + "\r\n");
+            dos.writeBytes("Cookie: logined=true"+"\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
     private void response302Header(DataOutputStream dos, String redirectURL) {
         try {
             dos.writeBytes("HTTP/1.1 302 FOUND \r\n");
-            dos.writeBytes("Location: " + redirectURL);
+            dos.writeBytes("Location: " + redirectURL+"\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
