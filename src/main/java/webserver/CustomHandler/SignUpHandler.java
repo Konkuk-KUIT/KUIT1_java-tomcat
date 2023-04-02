@@ -25,7 +25,6 @@ public class SignUpHandler implements CustomHandler {
 
         repository.addUser(user);
 
-        IndexHandler indexHandler = new IndexHandler();
-        return indexHandler.process(paramMap);
+        return "/index.html".getBytes();
     }
 }
