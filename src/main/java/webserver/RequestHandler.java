@@ -1,9 +1,17 @@
 package webserver;
 
+import db.MemoryUserRepository;
+import db.Repository;
+import http.util.HttpRequestUtils;
+import http.util.IOUtils;
+import model.User;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,10 +19,13 @@ public class RequestHandler implements Runnable{
     Socket connection;
     private static final String ROOT = "./webapp";
     private static final String MAIN_URL = "/index.html";
+    private final Repository repository;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
+
 
     public RequestHandler(Socket connection) {
         this.connection = connection;
+        repository = MemoryUserRepository.getInstance();
     }
 
     @Override
@@ -44,7 +55,24 @@ public class RequestHandler implements Runnable{
         String HTTP_version = startLines[2];
 
         log.log(Level.INFO, "<" + requestUrl + ">");
+        log.log(Level.INFO, "<" + method + ">");
         byte[] body = new byte[0];
+
+        int contentLength = 0;
+
+        // header 정보 파싱
+        while (true) {
+            final String line = br.readLine();
+            log.log(Level.INFO, "line: "+ line);
+            if (line.equals("")) {
+                break;
+            }
+            // header info
+            if (line.startsWith("Content-Length")) { // GET일 땐 x
+                log.log(Level.INFO, "Content-Length 발견");
+                contentLength = Integer.parseInt(line.split(": ")[1]);
+            }
+        }
 
 
         /* ****************************
@@ -54,8 +82,18 @@ public class RequestHandler implements Runnable{
         if(requestUrl.equals("/")){
             requestUrl = MAIN_URL;
         }
-        if(method.equals("GET") && requestUrl.contains(".html")) {
+        if(method.equals("GET") && requestUrl.endsWith(".html")) {
             body = Files.readAllBytes(Paths.get(ROOT + requestUrl));
+        }
+
+        /* ****************************
+                    요구사항 2
+         ****************************** */
+        if(method.equals("GET") && requestUrl.contains("/user/signup")){
+            String query = requestUrl.split("\\?")[1];
+            Map<String, String> queries = HttpRequestUtils.parseQueryParameter(query);
+            User user = new User(queries.get("userId"), queries.get("password"), queries.get("name"), queries.get("email"));
+            repository.addUser(user);
         }
 
         return body;
