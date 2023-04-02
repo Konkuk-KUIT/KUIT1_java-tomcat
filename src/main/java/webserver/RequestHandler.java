@@ -28,12 +28,12 @@ public class RequestHandler implements Runnable{
         handlerMappingMap.put("/user/signup", new SignUpHandler());
         handlerMappingMap.put("/user/login.html", new LoginFormHandler());
         handlerMappingMap.put("/user/login_failed.html", new LoginFailFormHandler());
+        handlerMappingMap.put("/user/login", new LoginHandler());
     }
 
     @Override
     public void run() {
         log.log(Level.INFO, "[RequestHandler] New Client Connect! Connected IP : " + connection.getInetAddress() + ", Port : " + connection.getPort());
-
         handlerMapping();
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()){
@@ -43,16 +43,21 @@ public class RequestHandler implements Runnable{
 
             String startLine = getStartLine(br);
             String uri = getURIFromRequestTarget(getRequestTarget(startLine));
-            System.out.println("uri = " + uri);
             CustomHandler handler = handlerMappingMap.get(uri);
 
             Map<String, String> paramMap =
                     HttpRequestUtils.parseQueryParameter(IOUtils.readData(br, getRequestContentLength(br)));
 
             byte[] bytes = handler.process(paramMap);
-
             if (getHTTPMethod(startLine).equals("POST")) {
-                response302Header(dos);
+                String byteToString = new String(bytes);
+                if (uri.equals("/user/login")) {
+                    if (byteToString.equals("/index.html")) {
+                        response302HeaderAndCookie(dos, byteToString);
+                        return;
+                    }
+                }
+                response302Header(dos, byteToString);
                 return;
             }
             response200Header(dos, bytes.length);
@@ -108,10 +113,21 @@ public class RequestHandler implements Runnable{
         }
     }
 
-    private void response302Header(DataOutputStream dos) {
+    private void response302Header(DataOutputStream dos, String viewName) {
         try {
             dos.writeBytes("HTTP/1.1 302 OK \r\n");
-            dos.writeBytes("Location: /index.html \r\n");
+            dos.writeBytes("Location: " + viewName + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    private void response302HeaderAndCookie(DataOutputStream dos, String viewName) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 OK \r\n");
+            dos.writeBytes("Location: " + viewName + "\r\n");
+            dos.writeBytes("Set-Cookie: logined=true\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
