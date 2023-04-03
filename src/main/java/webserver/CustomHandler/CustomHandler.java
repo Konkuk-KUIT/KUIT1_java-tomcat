@@ -1,9 +1,11 @@
 package webserver.CustomHandler;
 
+import webserver.HttpRequest;
+import webserver.HttpResponse;
+
 import java.io.IOException;
-import java.util.Map;
 
 public interface CustomHandler {
 
-    byte[] process(Map<String, String> paramMap) throws IOException;
+    byte[] process(HttpRequest request, HttpResponse response) throws IOException;
 }
