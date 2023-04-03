@@ -3,6 +3,7 @@ package webserver;
 import db.MemoryUserRepository;
 import db.Repository;
 import http.util.HttpRequestUtils;
+import http.util.IOUtils;
 import model.User;
 
 import java.io.*;
@@ -37,6 +38,19 @@ public class RequestHandler implements Runnable{
             String method = lines[0];
             String url = lines[1];
 
+            int requestContentLength = 0;
+
+            while (true) {
+                final String line = br.readLine();
+                if (line.equals("")) {
+                    break;
+                }
+                // header info
+                if (line.startsWith("Content-Length")) {
+                    requestContentLength = Integer.parseInt(line.split(": ")[1]);
+                }
+            }
+
             byte[] body = new byte[0];
 
             // 요구사항 1: index.html 반환하기
@@ -48,13 +62,25 @@ public class RequestHandler implements Runnable{
                 body = Files.readAllBytes(Paths.get(ROOT_URL + url));
             }
 
-            // 요구사항 2: GET 방식으로 회원가입하기
-            if (method.equals("GET") && url.contains("/user/signup")) {
-                String query = url.split("\\?")[1];
+//            // 요구사항 2: GET 방식으로 회원가입하기
+//            if (method.equals("GET") && url.contains("/user/signup")) {
+//                String query = url.split("\\?")[1];
+//                Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
+//                User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
+//                repository.addUser(user);
+//
+//                response302Header(dos, HOME_URL);
+//                return;
+//            }
+
+            // 요구사항 3: POST 방식으로 회원가입하기
+            if (method.equals("POST") && url.contains("/user/signup")) {
+                String query = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
                 repository.addUser(user);
 
+                // 요구사항 4: 302 status code 적용
                 response302Header(dos, HOME_URL);
                 return;
             }
