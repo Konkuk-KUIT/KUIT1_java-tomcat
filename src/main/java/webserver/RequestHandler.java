@@ -85,6 +85,23 @@ public class RequestHandler implements Runnable{
                 return;
             }
 
+            // 요구사항 5: 로그인하기
+            if (method.equals("POST") && url.contains("/user/login")) {
+                String query = IOUtils.readData(br, requestContentLength);
+                Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
+                User user = repository.findUserById(queryParameter.get("userId"));
+
+                // 로그인 성공
+                if ((user != null) && user.getPassword().equals(queryParameter.get("password"))) {
+                    response302HeaderWithCookie(dos, HOME_URL);
+                    return;
+                }
+
+                // 로그인 실패
+                response302Header(dos, "/user/login_failed.html");
+                return;
+            }
+
             response200Header(dos, body.length);
             responseBody(dos, body);
 
@@ -113,6 +130,18 @@ public class RequestHandler implements Runnable{
             log.log(Level.SEVERE, e.getMessage());
         }
     }
+
+    private void response302HeaderWithCookie(DataOutputStream dos, String location) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + location + "\r\n");
+            dos.writeBytes("Cookie: logined=true");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
     private void responseBody(DataOutputStream dos, byte[] body) {
         try {
             dos.write(body, 0, body.length);
