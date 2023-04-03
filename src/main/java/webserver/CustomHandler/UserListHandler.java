@@ -10,27 +10,31 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 
+import static webserver.constant.Http.*;
+
 public class UserListHandler implements CustomHandler{
 
-    private final File file = new File("webapp/user/list.html");
+    private final File file = new File(WEBAPP.getValue() + LIST.getValue());
 
     @Override
     public byte[] process(HttpRequest request, HttpResponse response) throws IOException {
+        System.out.println("진입");
         Map<String, String> headerMap = request.getHeaderMap();
-        String cookieValue = headerMap.get("Cookie");
+        String cookieValue = headerMap.get(COOKIE.getValue());
         String[] split = cookieValue.split(";");
-        if (split[0].equals("logined=true")) {
+        System.out.println("split[0] = " + split[0]);
+        if (split[0].equals(LOGINED_TRUE.getValue())) {
             BufferedReader fr = new BufferedReader(new FileReader(file));
             String fileData = IOUtils.readData(fr, (int) file.length());
             return fileData.getBytes();
         }
 
         setStatusCodeAndLocation(response);
-        return "/index.html".getBytes();
+        return INDEX.getValue().getBytes();
     }
 
     private static void setStatusCodeAndLocation(HttpResponse response) {
-        response.setStatusCode("302");
-        response.setHeader("location", "/index.html");
+        response.setStatusCode(FOUND.getValue());
+        response.setHeader(LOCATION.getValue(), INDEX.getValue());
     }
 }

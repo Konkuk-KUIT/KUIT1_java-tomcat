@@ -9,9 +9,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import static webserver.constant.Http.*;
+
 public class SignUpFormHandler implements CustomHandler{
 
-    private final File file = new File("webapp/user/form.html");
+    private final File file = new File(WEBAPP.getValue() + SIGNUP_FORM.getValue());
 
     @Override
     public byte[] process(HttpRequest request, HttpResponse response) throws IOException {

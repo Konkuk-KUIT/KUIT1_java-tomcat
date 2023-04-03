@@ -5,7 +5,8 @@ import webserver.CustomHandler.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+
+import static webserver.constant.Http.*;
 
 public class FrontHandler {
 
@@ -25,22 +26,22 @@ public class FrontHandler {
     }
 
     private static void handlerMapping() {
-        handlerMappingMap.put("/index.html", new IndexHandler());
+        handlerMappingMap.put(INDEX.getValue(), new IndexHandler());
         handlerMappingMap.put("/", new IndexHandler());
-        handlerMappingMap.put("/user/form.html", new SignUpFormHandler());
-        handlerMappingMap.put("/user/signup", new SignUpHandler());
-        handlerMappingMap.put("/user/login.html", new LoginFormHandler());
-        handlerMappingMap.put("/user/login_failed.html", new LoginFailFormHandler());
-        handlerMappingMap.put("/user/login", new LoginHandler());
-        handlerMappingMap.put("/user/userList", new UserListHandler());
-        handlerMappingMap.put("/css", new CssHandler());
+        handlerMappingMap.put(SIGNUP_FORM.getValue(), new SignUpFormHandler());
+        handlerMappingMap.put(SIGNUP.getValue(), new SignUpHandler());
+        handlerMappingMap.put(LOGIN_FORM.getValue(), new LoginFormHandler());
+        handlerMappingMap.put(USER_LOGIN_FAILED.getValue(), new LoginFailFormHandler());
+        handlerMappingMap.put(LOGIN.getValue(), new LoginHandler());
+        handlerMappingMap.put(USER_LIST.getValue(), new UserListHandler());
+        handlerMappingMap.put(CSS.getValue(), new CssHandler());
     }
 
     public void service(HttpRequest request, HttpResponse response) throws IOException {
 
         String requestUri = request.getRequestUri();
         CustomHandler handler;
-        if (requestUri.contains("css")) handler = handlerMappingMap.get("/css");
+        if (requestUri.contains(CSS.getValue())) handler = handlerMappingMap.get(CSS.getValue());
         else handler = handlerMappingMap.get(request.getRequestUri());
 
         byte[] bytes = handler.process(request, response);

@@ -2,11 +2,14 @@ package webserver;
 
 import http.util.HttpRequestUtils;
 import http.util.IOUtils;
+import webserver.constant.Http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static webserver.constant.Http.*;
 
 public class HttpRequest {
 
@@ -24,17 +27,12 @@ public class HttpRequest {
         httpRequest.requestUri = getURIFromRequestTarget(getRequestTarget(startLine));
         httpRequest.headerMap = getRequestHeader(br);
 
-        if (httpRequest.headerMap.get("Content-Length") == null) httpRequest.contentLength = 0;
-        else httpRequest.contentLength = Integer.parseInt(httpRequest.headerMap.get("Content-Length"));
+        if (httpRequest.headerMap.get(CONTENT_LENGTH.getValue()) == null) httpRequest.contentLength = 0;
+        else httpRequest.contentLength = Integer.parseInt(httpRequest.headerMap.get(CONTENT_LENGTH.getValue()));
 
         httpRequest.paramMap = HttpRequestUtils.parseQueryParameter(IOUtils.readData(br, httpRequest.contentLength));
 
         return httpRequest;
-    }
-
-    private static String getHTTPMethod(String startLine) throws IOException {
-        String[] split = startLine.split(" ");
-        return split[0];
     }
 
     private static String getStartLine(BufferedReader br) throws IOException {

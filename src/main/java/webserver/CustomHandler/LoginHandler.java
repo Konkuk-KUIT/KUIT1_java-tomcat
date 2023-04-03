@@ -4,9 +4,12 @@ import db.MemoryUserRepository;
 import model.User;
 import webserver.HttpRequest;
 import webserver.HttpResponse;
+import webserver.constant.Http;
 
 import java.io.IOException;
 import java.util.Map;
+
+import static webserver.constant.Http.*;
 
 public class LoginHandler implements CustomHandler{
 
@@ -23,22 +26,22 @@ public class LoginHandler implements CustomHandler{
             User findById = repository.findUserById(paramMap.get("userId"));
             return passwordCheck(paramMap, findById, response);
         } catch (NullPointerException e) {
-            setStatusCodeAndLocation("/user/login_failed.html", response);
-            return "/user/login_failed.html".getBytes();
+            setStatusCodeAndLocation(USER_LOGIN_FAILED.getValue(), response);
+            return USER_LOGIN_FAILED.getValue().getBytes();
         }
     }
 
     private static byte[] passwordCheck(Map<String, String> paramMap, User findById, HttpResponse response) {
         if (!findById.getPassword().equals(paramMap.get("password"))) {
-            return "/user/login_failed.html".getBytes();
+            return USER_LOGIN_FAILED.getValue().getBytes();
         }
-        setStatusCodeAndLocation("/index.html", response);
-        response.setHeader("Set-Cookie", "logined=true");
-        return "/index.html".getBytes();
+        setStatusCodeAndLocation(INDEX.getValue(), response);
+        response.setHeader(SET_COOKIE.getValue(), LOGINED_TRUE.getValue());
+        return INDEX.getValue().getBytes();
     }
 
     private static void setStatusCodeAndLocation(String location, HttpResponse response) {
-        response.setStatusCode("302");
-        response.setHeader("location", location);
+        response.setStatusCode(FOUND.getValue());
+        response.setHeader(LOCATION.getValue(), location);
     }
 }

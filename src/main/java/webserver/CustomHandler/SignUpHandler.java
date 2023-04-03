@@ -4,9 +4,12 @@ import db.MemoryUserRepository;
 import model.User;
 import webserver.HttpRequest;
 import webserver.HttpResponse;
+import webserver.constant.Http;
 
 import java.io.IOException;
 import java.util.Map;
+
+import static webserver.constant.Http.*;
 
 public class SignUpHandler implements CustomHandler {
 
@@ -29,13 +32,13 @@ public class SignUpHandler implements CustomHandler {
 
         repository.addUser(user);
 
-        setStatusCodeAndLocation("/index.html", response);
+        setStatusCodeAndLocation(INDEX.getValue(), response);
 
-        return "/index.html".getBytes();
+        return INDEX.getValue().getBytes();
     }
 
     private static void setStatusCodeAndLocation(String location, HttpResponse response) {
-        response.setStatusCode("302");
-        response.setHeader("location", location);
+        response.setStatusCode(FOUND.getValue());
+        response.setHeader(LOCATION.getValue(), location);
     }
 }

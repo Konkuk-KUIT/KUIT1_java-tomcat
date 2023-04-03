@@ -1,11 +1,15 @@
 package webserver;
 
+import webserver.constant.Http;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static webserver.constant.Http.*;
 
 public class HttpResponse {
 
@@ -21,7 +25,7 @@ public class HttpResponse {
 
     public void createStartLine() {
         try {
-            String result = statusCode == null ? "200" : statusCode;
+            String result = statusCode == null ? OK.getValue() : statusCode;
             dos.writeBytes("HTTP/1.1 " + result + " OK \r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
@@ -30,7 +34,7 @@ public class HttpResponse {
 
     public void createHeader() {
         try {
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes(CONTENT_TYPE.getValue() + ": " + TEXT_HTML.getValue() + "\r\n");
             for (String s : headerMap.keySet()) {
                 dos.writeBytes(s + ": " + headerMap.get(s) + " \r\n");
             }
@@ -41,7 +45,7 @@ public class HttpResponse {
 
     public void responseBody(byte[] body) {
         try {
-            dos.writeBytes("Content-Length: " + body.length + "\r\n");
+            dos.writeBytes(CONTENT_LENGTH.getValue() + body.length + "\r\n");
             dos.writeBytes("\r\n");
             dos.write(body, 0, body.length);
             dos.flush();
