@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 public class FrontHandler {
 
-    private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
     private static final Map<String, CustomHandler> handlerMappingMap = new HashMap<>();
     private static FrontHandler frontHandler;
 
@@ -34,11 +33,15 @@ public class FrontHandler {
         handlerMappingMap.put("/user/login_failed.html", new LoginFailFormHandler());
         handlerMappingMap.put("/user/login", new LoginHandler());
         handlerMappingMap.put("/user/userList", new UserListHandler());
+        handlerMappingMap.put("/css", new CssHandler());
     }
 
     public void service(HttpRequest request, HttpResponse response) throws IOException {
 
-        CustomHandler handler = handlerMappingMap.get(request.getRequestUri());
+        String requestUri = request.getRequestUri();
+        CustomHandler handler;
+        if (requestUri.contains("css")) handler = handlerMappingMap.get("/css");
+        else handler = handlerMappingMap.get(request.getRequestUri());
 
         byte[] bytes = handler.process(request, response);
 
