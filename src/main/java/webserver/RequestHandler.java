@@ -41,6 +41,8 @@ public class RequestHandler implements Runnable{
             int requestContentLength = 0;
             boolean cookie = false;
 
+            String type = "html";
+
             while (true) {
                 final String line = br.readLine();
                 if (line.equals("")) {
@@ -119,7 +121,13 @@ public class RequestHandler implements Runnable{
                 body = Files.readAllBytes(Paths.get(ROOT_URL + "/user/list.html"));
             }
 
-            response200Header(dos, body.length);
+            // 요구사항 7: CSS 출력
+            if (url.endsWith("css")) {
+                type = "css";
+                body = Files.readAllBytes(Paths.get(ROOT_URL + url));
+            }
+
+            response200Header(dos, body.length, type);
             responseBody(dos, body);
 
         } catch (IOException e) {
@@ -127,10 +135,10 @@ public class RequestHandler implements Runnable{
         }
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String type) {
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+            dos.writeBytes("Content-Type: text/" + type + ";charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
