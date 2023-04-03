@@ -1,9 +1,15 @@
 package webserver;
 
+import db.MemoryUserRepository;
+import db.Repository;
+import http.util.HttpRequestUtils;
+import model.User;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,8 +19,11 @@ public class RequestHandler implements Runnable{
     private static final String ROOT_URL = "./webapp";
     private static final String HOME_URL = "/index.html";
 
+    private final Repository repository;
+
     public RequestHandler(Socket connection) {
         this.connection = connection;
+        repository = MemoryUserRepository.getInstance();
     }
 
     @Override
@@ -31,10 +40,23 @@ public class RequestHandler implements Runnable{
             byte[] body = new byte[0];
 
             // 요구사항 1: index.html 반환하기
-            if (method.equals("GET")) {
-                if (url.equals("/") || url.equals(HOME_URL)) {
-                    body = Files.readAllBytes(Paths.get(ROOT_URL + HOME_URL));
-                }
+            if (url.equals("/")) {
+                body = Files.readAllBytes(Paths.get(ROOT_URL + HOME_URL));
+            }
+
+            if (method.equals("GET") && url.endsWith(".html")) {
+                body = Files.readAllBytes(Paths.get(ROOT_URL + url));
+            }
+
+            // 요구사항 2: GET 방식으로 회원가입하기
+            if (method.equals("GET") && url.contains("/user/signup")) {
+                String query = url.split("\\?")[1];
+                Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
+                User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
+                repository.addUser(user);
+
+                response302Header(dos, HOME_URL);
+                return;
             }
 
             response200Header(dos, body.length);
@@ -56,6 +78,15 @@ public class RequestHandler implements Runnable{
         }
     }
 
+    private void response302Header(DataOutputStream dos, String location) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + location);
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
     private void responseBody(DataOutputStream dos, byte[] body) {
         try {
             dos.write(body, 0, body.length);
