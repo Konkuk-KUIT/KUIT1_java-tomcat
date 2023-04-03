@@ -2,14 +2,14 @@ package webserver;
 
 import webserver.CustomHandler.*;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FrontHandler {
 
+    private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
     private static final Map<String, CustomHandler> handlerMappingMap = new HashMap<>();
     private static FrontHandler frontHandler;
 
@@ -39,64 +39,12 @@ public class FrontHandler {
     public void service(HttpRequest request, HttpResponse response) throws IOException {
 
         CustomHandler handler = handlerMappingMap.get(request.getRequestUri());
-        Map<String, String> paramMap = request.getParamMap();
 
-        byte[] bytes = handler.process(paramMap);
-        if (request.getHttpMethod().equals("POST")) {
-            String byteToString = new String(bytes);
-            if (request.getRequestUri().equals("/user/login")) {
-                if (byteToString.equals("/index.html")) {
-                    response302HeaderAndCookie(dos, byteToString);
-                    return;
-                }
-            }
-            response302Header(dos, byteToString);
-            return;
-        }
-        response200Header(dos, bytes.length);
-        responseBody(dos, bytes);
+        byte[] bytes = handler.process(request, response);
 
-    }
+        response.createStartLine();
+        response.createHeader();
+        response.responseBody(bytes);
 
-
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
-    }
-
-    private void response302Header(DataOutputStream dos, String viewName) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 OK \r\n");
-            dos.writeBytes("Location: " + viewName + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
-    }
-
-    private void response302HeaderAndCookie(DataOutputStream dos, String viewName) {
-        try {
-            dos.writeBytes("HTTP/1.1 302 OK \r\n");
-            dos.writeBytes("Location: " + viewName + "\r\n");
-            dos.writeBytes("Set-Cookie: logined=true\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
     }
 }
