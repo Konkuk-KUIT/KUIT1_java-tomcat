@@ -39,6 +39,7 @@ public class RequestHandler implements Runnable{
             String url = lines[1];
 
             int requestContentLength = 0;
+            boolean cookie = false;
 
             while (true) {
                 final String line = br.readLine();
@@ -48,6 +49,11 @@ public class RequestHandler implements Runnable{
                 // header info
                 if (line.startsWith("Content-Length")) {
                     requestContentLength = Integer.parseInt(line.split(": ")[1]);
+                }
+                if (line.startsWith("Cookie")) {
+                    if (line.split(": ")[1].equals("logined=true")) {
+                        cookie = true;
+                    }
                 }
             }
 
@@ -63,7 +69,7 @@ public class RequestHandler implements Runnable{
             }
 
 //            // 요구사항 2: GET 방식으로 회원가입하기
-//            if (method.equals("GET") && url.contains("/user/signup")) {
+//            if (method.equals("GET") && url.equals("/user/signup")) {
 //                String query = url.split("\\?")[1];
 //                Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
 //                User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
@@ -74,7 +80,7 @@ public class RequestHandler implements Runnable{
 //            }
 
             // 요구사항 3: POST 방식으로 회원가입하기
-            if (method.equals("POST") && url.contains("/user/signup")) {
+            if (method.equals("POST") && url.equals("/user/signup")) {
                 String query = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
@@ -86,7 +92,7 @@ public class RequestHandler implements Runnable{
             }
 
             // 요구사항 5: 로그인하기
-            if (method.equals("POST") && url.contains("/user/login")) {
+            if (method.equals("POST") && url.equals("/user/login")) {
                 String query = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = repository.findUserById(queryParameter.get("userId"));
@@ -100,6 +106,17 @@ public class RequestHandler implements Runnable{
                 // 로그인 실패
                 response302Header(dos, "/user/login_failed.html");
                 return;
+            }
+
+            // 요구사항 6: 사용자 목록 출력
+            if (method.equals("GET") && url.equals("/user/userList")) {
+                // 로그인이 되어있지 않은 상태
+                if (cookie == false) {
+                    response302Header(dos, "/user/login.html");
+                    return;
+                }
+                // 로그인이 되어있는 상태
+                body = Files.readAllBytes(Paths.get(ROOT_URL + "/user/list.html"));
             }
 
             response200Header(dos, body.length);
@@ -135,7 +152,7 @@ public class RequestHandler implements Runnable{
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Location: " + location + "\r\n");
-            dos.writeBytes("Cookie: logined=true");
+            dos.writeBytes("Set-Cookie: logined=true");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
