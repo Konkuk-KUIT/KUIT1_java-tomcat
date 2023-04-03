@@ -5,11 +5,11 @@ import http.util.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class HttpRequest {
 
-    private String httpMethod;
     private String requestUri;
     private int contentLength;
     private Map<String, String> paramMap;
@@ -19,32 +19,17 @@ public class HttpRequest {
 
     public static HttpRequest from(BufferedReader br) throws IOException {
         HttpRequest httpRequest = new HttpRequest();
+
         String startLine = getStartLine(br);
-        httpRequest.httpMethod = getHTTPMethod(startLine);
         httpRequest.requestUri = getURIFromRequestTarget(getRequestTarget(startLine));
-        httpRequest.contentLength = getRequestContentLength(br);
-        httpRequest.paramMap = HttpRequestUtils.parseQueryParameter(
-                IOUtils.readData(br, httpRequest.contentLength));
-        httpRequest.headerMap = HttpRequestUtils.parseHeader(
-                IOUtils.readData(br, httpRequest.contentLength));
+        httpRequest.headerMap = getRequestHeader(br);
+
+        if (httpRequest.headerMap.get("Content-Length") == null) httpRequest.contentLength = 0;
+        else httpRequest.contentLength = Integer.parseInt(httpRequest.headerMap.get("Content-Length"));
+
+        httpRequest.paramMap = HttpRequestUtils.parseQueryParameter(IOUtils.readData(br, httpRequest.contentLength));
 
         return httpRequest;
-    }
-
-
-    private static int getRequestContentLength(BufferedReader br) throws IOException {
-        int requestContentLength = 0;
-        while (true) {
-            final String line = br.readLine();
-            if (line.equals("")) {
-                break;
-            }
-            // header info
-            if (line.startsWith("Content-Length")) {
-                requestContentLength = Integer.parseInt(line.split(": ")[1]);
-            }
-        }
-        return requestContentLength;
     }
 
     private static String getHTTPMethod(String startLine) throws IOException {
@@ -66,16 +51,26 @@ public class HttpRequest {
         return split[0];
     }
 
-    public String getHttpMethod() {
-        return httpMethod;
+
+    public static Map<String, String> getRequestHeader(BufferedReader br) {
+        HashMap<String, String> map = new HashMap<>();
+        try {
+            while (true) {
+                final String line = br.readLine();
+                if (line.equals("")) return map;
+
+                // header info
+                String[] split = line.split(":");
+                map.put(split[0].strip(), split[1].strip());
+            }
+        } catch (IOException e) {
+            System.out.println("헤더매핑오류");
+            return map;
+        }
     }
 
     public String getRequestUri() {
         return requestUri;
-    }
-
-    public int getContentLength() {
-        return contentLength;
     }
 
     public Map<String, String> getParamMap() {
