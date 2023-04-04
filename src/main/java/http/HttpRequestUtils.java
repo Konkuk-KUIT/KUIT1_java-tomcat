@@ -1,4 +1,4 @@
-package http.util;
+package http;
 
 import java.util.Arrays;
 import java.util.HashMap;

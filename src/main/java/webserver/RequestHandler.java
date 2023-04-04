@@ -2,8 +2,9 @@ package webserver;
 
 import db.MemoryUserRepository;
 import db.Repository;
-import http.util.HttpRequestUtils;
-import http.util.IOUtils;
+import http.HttpRequestUtils;
+import http.IOUtils;
+import http.RequestUrl;
 import model.User;
 
 import java.io.*;
@@ -17,8 +18,16 @@ import java.util.logging.Logger;
 public class RequestHandler implements Runnable{
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
-    private static final String ROOT_URL = "./webapp";
-    private static final String HOME_URL = "/index.html";
+
+    private static final String ROOT = RequestUrl.ROOT.getUrl();
+    private static final String INDEX = RequestUrl.INDEX.getUrl();
+    private static final String SIGNUP_URI = RequestUrl.SIGNUP_URI.getUrl();
+    private static final String LOGIN_URI = RequestUrl.LOGIN_URI.getUrl();
+    private static final String LOGIN_URL = RequestUrl.LOGIN_URL.getUrl();
+    private static final String LOGIN_FAILED_URL = RequestUrl.LOGIN_FAILED_URL.getUrl();
+    private static final String LIST_URI = RequestUrl.LIST_URI.getUrl();
+    private static final String LIST_URL = RequestUrl.LIST_URL.getUrl();
+
 
     private final Repository repository;
 
@@ -63,11 +72,11 @@ public class RequestHandler implements Runnable{
 
             // 요구사항 1: index.html 반환하기
             if (url.equals("/")) {
-                body = Files.readAllBytes(Paths.get(ROOT_URL + HOME_URL));
+                body = Files.readAllBytes(Paths.get(ROOT + INDEX));
             }
 
             if (method.equals("GET") && url.endsWith(".html")) {
-                body = Files.readAllBytes(Paths.get(ROOT_URL + url));
+                body = Files.readAllBytes(Paths.get(ROOT + url));
             }
 
 //            // 요구사항 2: GET 방식으로 회원가입하기
@@ -82,49 +91,49 @@ public class RequestHandler implements Runnable{
 //            }
 
             // 요구사항 3: POST 방식으로 회원가입하기
-            if (method.equals("POST") && url.equals("/user/signup")) {
+            if (method.equals("POST") && url.equals(SIGNUP_URI)) {
                 String query = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
                 repository.addUser(user);
 
                 // 요구사항 4: 302 status code 적용
-                response302Header(dos, HOME_URL);
+                response302Header(dos, INDEX);
                 return;
             }
 
             // 요구사항 5: 로그인하기
-            if (method.equals("POST") && url.equals("/user/login")) {
+            if (method.equals("POST") && url.equals(LOGIN_URI)) {
                 String query = IOUtils.readData(br, requestContentLength);
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = repository.findUserById(queryParameter.get("userId"));
 
                 // 로그인 성공
                 if ((user != null) && user.getPassword().equals(queryParameter.get("password"))) {
-                    response302HeaderWithCookie(dos, HOME_URL);
+                    response302HeaderWithCookie(dos, INDEX);
                     return;
                 }
 
                 // 로그인 실패
-                response302Header(dos, "/user/login_failed.html");
+                response302Header(dos, LOGIN_FAILED_URL);
                 return;
             }
 
             // 요구사항 6: 사용자 목록 출력
-            if (method.equals("GET") && url.equals("/user/userList")) {
+            if (method.equals("GET") && url.equals(LIST_URI)) {
                 // 로그인이 되어있지 않은 상태
                 if (cookie == false) {
-                    response302Header(dos, "/user/login.html");
+                    response302Header(dos, LOGIN_URL);
                     return;
                 }
                 // 로그인이 되어있는 상태
-                body = Files.readAllBytes(Paths.get(ROOT_URL + "/user/list.html"));
+                body = Files.readAllBytes(Paths.get(ROOT + LIST_URL));
             }
 
             // 요구사항 7: CSS 출력
             if (url.endsWith("css")) {
                 type = "css";
-                body = Files.readAllBytes(Paths.get(ROOT_URL + url));
+                body = Files.readAllBytes(Paths.get(ROOT + url));
             }
 
             response200Header(dos, body.length, type);
