@@ -1,9 +1,16 @@
 package webserver;
 
+import javax.swing.text.Document;
+import javax.swing.text.Element;
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public class RequestHandler implements Runnable{
     Socket connection;
@@ -20,9 +27,39 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            byte[] body = "Hello World".getBytes();
-            response200Header(dos, body.length);
-            responseBody(dos, body);
+            //요구사항 1
+            String url = br.readLine();
+            String[] info=url.split(" ");
+            String type=info[0];
+            String fileName=info[1].split("/")[1];
+
+            if (url != null) {
+                System.out.println(url);
+            }
+
+            if(fileName.equals("index.html")) {
+                try {
+                    // read all bytes
+                    byte[] index = Files.readAllBytes(Paths.get("webapp/" + fileName));
+
+                    // convert bytes to string
+                    String content = new String(index, StandardCharsets.UTF_8);
+
+                    // print contents
+                    System.out.println(content);
+
+                    Document doc = Jsoup.parseBodyFragment(content);
+                    Element body = doc.body();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+
+//            byte[] body = "Hello World".getBytes();
+//            response200Header(dos, body.length);
+//            responseBody(dos, body);
 
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
