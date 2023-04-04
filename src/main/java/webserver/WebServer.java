@@ -14,19 +14,21 @@ public class WebServer {
 
     public static void main(String[] args) throws IOException {
         int port = DEFAULT_PORT;
-        ExecutorService service = Executors.newFixedThreadPool(DEFAULT_THREAD_NUM);
+        ExecutorService service = Executors.newFixedThreadPool(DEFAULT_THREAD_NUM); // multi-thread
 
         if (args.length != 0) {
             port = Integer.parseInt(args[0]);
         }
 
         // TCP 환영 소켓
-        try (ServerSocket welcomeSocket = new ServerSocket(port)){
+        try (ServerSocket welcomeSocket = new ServerSocket(port)){ // try-with-resources
 
             // 연결 소켓
             Socket connection;
             while ((connection = welcomeSocket.accept()) != null) {
                 // 스레드에 작업 전달
+                System.out.println("Client connected: " +
+                        connection.getInetAddress().getHostAddress() + ":" + connection.getPort());
                 service.submit(new RequestHandler(connection));
             }
         }
