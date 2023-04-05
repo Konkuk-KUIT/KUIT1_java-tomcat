@@ -3,7 +3,7 @@ package http.constant;
 import java.util.Arrays;
 
 public enum RequestUrl {
-    ROOT("./webapp"), INDEX("/index.html"),
+    ROOT("./webapp"), INDEX("/index.html"), CSS("/css/styles.css"),
     SIGNUP_URI("/user/signup"), FORM("/user/form.html"),
     LOGIN_URI("/user/login"), LOGIN_URL("/user/login.html"), LOGIN_FAILED_URL("/user/login_failed.html"),
     LIST_URI("/user/userList"), LIST_URL("/user/list.html");

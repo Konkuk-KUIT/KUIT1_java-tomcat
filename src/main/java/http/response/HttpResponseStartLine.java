@@ -44,7 +44,8 @@ public class HttpResponseStartLine {
         return message;
     }
 
-    public String getStartLine() {
+    @Override
+    public String toString() {
         return getVersion() + " " + getStatusCode().getStatus() + " " + getMessage() + " \r\n";
     }
 }

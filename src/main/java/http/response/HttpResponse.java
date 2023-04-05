@@ -44,7 +44,7 @@ public class HttpResponse {
     }
 
     private void response() throws IOException {
-        dos.writeBytes(startLine.getStartLine());
+        dos.writeBytes(startLine.toString());
         dos.writeBytes(header.toString() + "\r\n");
         dos.write(body, 0, body.length);
         dos.flush();
@@ -66,8 +66,9 @@ public class HttpResponse {
     }
 
     public void setHeaderContentType(String path) {
+        System.out.println("path: " + path);
         if (path.endsWith(".css")) {
-            setHeader(HttpHeader.CONTENT_TYPE.getHeader(), "text/css;charset=utf-8");
+            setHeader(HttpHeader.CONTENT_TYPE.getHeader(), "text/css");
             return;
         }
         setHeader(HttpHeader.CONTENT_TYPE.getHeader(), "text/html;charset=utf-8");

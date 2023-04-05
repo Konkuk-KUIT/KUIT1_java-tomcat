@@ -108,13 +108,13 @@ public class RequestHandler implements Runnable{
                 }
                 // 로그인이 되어있는 상태
                 response.forward(LIST_URL);
+                return;
             }
 
-//            // 요구사항 7: CSS 출력
-//            if (request.getUrl().endsWith("css")) {
-//                type = "css";
-//                body = Files.readAllBytes(Paths.get(ROOT + request.getUrl()));
-//            }
+            // 요구사항 7: CSS 출력
+            if (request.getUrl().endsWith("css")) {
+                response.forward(request.getUrl());
+            }
 
 
         } catch (IOException e) {
