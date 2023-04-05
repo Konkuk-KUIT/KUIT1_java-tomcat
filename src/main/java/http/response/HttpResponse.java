@@ -2,7 +2,6 @@ package http.response;
 
 import http.constant.HttpHeader;
 import http.constant.HttpStatus;
-import http.constant.RequestUrl;
 import http.request.HttpHeaders;
 
 import java.io.DataOutputStream;
@@ -51,8 +50,7 @@ public class HttpResponse {
     }
 
     public void setBody(String path) throws IOException {
-        RequestUrl url = RequestUrl.getRequestUrl(path);
-        body = Files.readAllBytes(Paths.get(ROOT.getUrl() + url.getUrl()));
+        body = Files.readAllBytes(Paths.get(ROOT.getUrl() + path));
     }
 
     public void setStartLine(HttpStatus code) {
