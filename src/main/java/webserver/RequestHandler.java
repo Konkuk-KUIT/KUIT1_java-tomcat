@@ -27,14 +27,12 @@ public class RequestHandler implements Runnable{
     public void run() {
         log.log(Level.INFO, "New Client Connect! Connected IP : " + connection.getInetAddress() + ", Port : " + connection.getPort());
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            //in은 Header만..?
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
             //첫줄 읽어서 방식, 경로, 버전 확인
             String restfulAPI = br.readLine();
             System.out.println(restfulAPI);
-           // System.out.println(br.readLine());
 
             StringTokenizer st = new StringTokenizer(restfulAPI, " ");
 
@@ -42,49 +40,53 @@ public class RequestHandler implements Runnable{
             String restfulPath = st.nextToken();
             String restfulVersion = st.nextToken();
 
-            System.out.println("restfulPath : " + restfulPath);
-            if(restfulMethod.equals("GET")) processGet(dos, restfulPath);
-            if(restfulMethod.equals("POST")) {
-                processPost(dos, br, restfulPath);
+            int requestContentLength = 0;
+            boolean cookie = false;
+            while (true) {
+                final String line = br.readLine();
+                System.out.println("line : " + line);
+                if (line.equals("")) break;
+                // header info
+                if (line.startsWith("Content-Length")) {
+                    requestContentLength = Integer.parseInt(line.split(": ")[1]);
+                }
+                // header info
+                if (line.startsWith("Cookie")) {
+                    if (line.split(":")[1].contains("logined=true")) {
+                        cookie = true;
+                    }
+                }
 
             }
 
-            // byte[] body = "Hello World".getBytes();
-           // response200Header(dos, body.length);
-            // responseBody(dos, body);
+            System.out.println("restfulPath : " + restfulPath);
+            if(restfulMethod.equals("GET")) processGet(dos, restfulPath, cookie);
+            if(restfulMethod.equals("POST")) processPost(dos, br, restfulPath, requestContentLength);
 
-            //System.out.println(repository.findAll());
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
     }
 
     //Post방식 처리
-    private void processPost(DataOutputStream dos,BufferedReader br, String restfulPath) throws IOException {
+    private void processPost(DataOutputStream dos,BufferedReader br, String restfulPath, int requestContentLength) throws IOException {
 
-        int requestContentLength = 0;
-        while (true) {
-            final String line = br.readLine();
-            System.out.println("line : " + line);
-            if (line.equals("")) break;
-            // header info
-            if (line.startsWith("Content-Length")) {
-                requestContentLength = Integer.parseInt(line.split(": ")[1]);
-            }
-
-        }
         //body 있으면?
         if(requestContentLength != 0) {
             //body 가져오기
             String body = IOUtils.readData(br, requestContentLength);
             System.out.println("Body : " + body);
             Map<String, String> map = HttpRequestUtils.parseQueryParameter(body);
-            if(restfulPath.equals("/user/signup")) Signup(dos, map);
+            if(restfulPath.equals("/user/signup")) signUp(dos, map);
+
+            if(restfulPath.equals("/user/login")) Login(dos, map);
         }
     }
 
+
+
     //get 요청이 들어올 시 해당 내용 처리
-    private void processGet(DataOutputStream dos, String restfulPath) throws IOException {
+    private void processGet(DataOutputStream dos, String restfulPath, boolean cookie) throws IOException {
         StringTokenizer st;
         //query가 있는지 없는지?
         st = new StringTokenizer(restfulPath, "?");
@@ -94,25 +96,44 @@ public class RequestHandler implements Runnable{
         if(filePath.equals("/")) filePath = "/index.html";
 
         //단순 경로 요청 시?
-        if(filePath.contains(".html")) getPathFile(filePath, dos);
+        if(filePath.contains(".html"))
+            getPathFile(filePath, dos, 200, false, false);
+
+        //css가 있을 시?
+        if(filePath.contains(".css"))
+            getPathFile(filePath, dos, 200, false, true);
 
         //query가 있을 시? //? 체크해서 값 얻어냄
         if(st.hasMoreTokens()) {
             //map에 모든 해당 값을 넣어주고
             Map<String, String> map = HttpRequestUtils.parseQueryParameter(st.nextToken());
-            getCheckPath(dos, filePath, map);
+            getCheckPath(dos, filePath, map, false);
+        }
+
+        //단순 경로 요청도 아니고 query도 없을 시
+        else {
+            getCheckPath(dos, filePath, null, cookie);
         }
     }
 
-    //경로 파악후 알맞은 함수로 보내줌
-    private void getCheckPath(DataOutputStream dos, String filePath, Map<String, String> map) throws IOException {
-        if(filePath.equals("/user/signup")) {
-            Signup(dos, map);
-        }
+    //Get 방식일 때 경로 파악후 알맞은 함수로 보내줌
+    private void getCheckPath(DataOutputStream dos, String filePath, Map<String, String> map, boolean cookie) throws IOException {
+        if(filePath.equals("/user/signup")) signUp(dos, map);
+        if(filePath.equals("/user/userList")) showList(dos, cookie);
+
     }
 
-    //회원가입이 들어왔을 시 회원가입
-    private void Signup(DataOutputStream dos, Map<String, String> map) throws IOException {
+    //showList controller
+    private void showList(DataOutputStream dos, boolean cookie) throws IOException {
+        if(cookie) {
+            getPathFile("/user/list.html", dos, 302, cookie, false);
+            return;
+        }
+        getPathFile("/user/login.html", dos, 302, cookie,false);
+    }
+
+    //signUp Controller
+    private void signUp(DataOutputStream dos, Map<String, String> map) throws IOException {
 
             repository.addUser(new User(map.get("userId"),
                     map.get("password"),
@@ -120,31 +141,60 @@ public class RequestHandler implements Runnable{
                     map.get("email")));
 
             System.out.println("회원가입 완료");
-            getPathFile("/index.html", dos);
+            getPathFile("/index.html", dos, 302, false,false );
+    }
+
+
+    //Login Controller
+    private void Login(DataOutputStream dos, Map<String, String> map) throws IOException {
+        User user = repository.findUserById(map.get("userId"));
+        System.out.println("user : " + user);
+        //아이디 비번 같을 시 index.html 출력
+        if((user != null) && (user.getPassword().equals(map.get("password")))) {
+            getPathFile("/index.html", dos, 302, true, false);
+            return;
+        }
+        //다를 시 login_failed.html 출력
+        getPathFile("/user/login_failed.html", dos, 302, false, false);
+
     }
 
 
     //파일 경로를 읽어 출력
-    private void getPathFile(String filePath, DataOutputStream dos) throws IOException {
+    private void getPathFile(String filePath, DataOutputStream dos, int status, boolean cookie, boolean css) throws IOException {
 
         String fullpath = "webapp" + filePath;
 
          FileInputStream fis = new FileInputStream(fullpath);
         byte[] fisBody = fis.readAllBytes();
-        response200Header(dos, fisBody.length);
-        responseBody(dos, fisBody);
+        if(status == 200)
+            response200Header(dos, fisBody.length, css);
+        if(status == 302)
+        {
+            if(cookie)response302Header(dos, fisBody.length, filePath,  true);
+            else response302Header(dos, fisBody.length, filePath, false);
+        }
+            responseBody(dos, fisBody);
     }
 
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
+    private void response302Header(DataOutputStream dos, int lengthOfBodyContent, String filePath, boolean cookie) throws IOException {
+        dos.writeBytes("HTTP/1.1 302 Found \r\n");
+
+        dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n");
+        dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+        if(cookie) dos.writeBytes("Set-Cookie: " + cookie + "\r\n");
+        dos.writeBytes("Location: " + filePath + "\r\n");
     }
+
+    private void response200Header(DataOutputStream dos, int lengthOfBodyContent, boolean css) throws IOException {
+
+        dos.writeBytes("HTTP/1.1 200 OK \r\n");
+        if(css) dos.writeBytes("Content-Type: text/css,*/*;q=0.1 \r\n");
+        else dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n");
+        dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+        dos.writeBytes("\r\n");
+    }
+
 
     private void responseBody(DataOutputStream dos, byte[] body) {
         try {
