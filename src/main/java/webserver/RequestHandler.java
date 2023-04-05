@@ -36,7 +36,10 @@ public class RequestHandler implements Runnable{
             String method = Info[0];
             String url = Info[1];
             String queryString = "";
+            final String loginCookie = "logined=true;";
+            final String loginFailedCookie = "logined=false;";
             int requestContentLength = 0;
+            String requestCookie = "";
 
             byte body[];
 
@@ -48,6 +51,9 @@ public class RequestHandler implements Runnable{
                 // header info
                 if (line.startsWith("Content-Length")) {
                     requestContentLength = Integer.parseInt(line.split(": ")[1]);
+                }
+                if (line.startsWith("Cookie")) {
+                    requestCookie = line.split(":")[1];
                 }
             }
 
@@ -78,10 +84,28 @@ public class RequestHandler implements Runnable{
                 Map<String, String> user = HttpRequestUtils.parseQueryParameter(queryString);
                 User tempUser = memoryUserRepository.findUserById(user.get("userId"));
                 if(tempUser!=null && user.get("password").equals(tempUser.getPassword())){
-                    response302Header(dos,"/index.html");
+                    System.out.println(loginCookie);
+                    response302HeaderWithCookie(dos,"/index.html",loginCookie);
                     return;
                 }
-                response302Header(dos,"/user/login_failed.html");
+                response302HeaderWithCookie(dos,"/user/login_failed.html",loginFailedCookie);
+                return;
+            }
+
+            if(url.equals("/user/userList")){
+                if(!requestCookie.isEmpty()&&requestCookie.split("=")[1].equals("true")){
+                    System.out.println("목록");
+                    response302Header(dos,"/user/list.html");
+                    return;
+                }
+                response302Header(dos,"/user/login.html");
+                return;
+            }
+
+            if(url.contains("css")){
+                body = Files.readAllBytes(Paths.get("./webapp"+url));
+                response200cssHeader(dos,body.length);
+                responseBody(dos,body);
                 return;
             }
 
@@ -107,10 +131,32 @@ public class RequestHandler implements Runnable{
         }
     }
 
+    private void response200cssHeader(DataOutputStream dos, int lengthOfBodyContent) {
+        try {
+            dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
     private void response302Header(DataOutputStream dos, String location) {
         try {
             dos.writeBytes("HTTP/1.1 302 Found \r\n");
             dos.writeBytes("Location: " + location + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    private void response302HeaderWithCookie(DataOutputStream dos, String location, String content) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Found \r\n");
+            dos.writeBytes("Location: " + location + "\r\n");
+            dos.writeBytes("Set-Cookie: "+ content + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
