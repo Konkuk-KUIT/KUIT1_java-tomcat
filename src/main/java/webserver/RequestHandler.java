@@ -7,15 +7,12 @@ import http.constant.HttpMethod;
 import http.request.HttpRequest;
 import http.response.HttpResponse;
 import http.util.HttpRequestUtils;
-import http.util.IOUtils;
 import http.constant.RequestUrl;
 import model.User;
 import model.UserQueryKey;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +21,6 @@ public class RequestHandler implements Runnable{
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
 
-    private static final String ROOT = RequestUrl.ROOT.getUrl();
     private static final String INDEX = RequestUrl.INDEX.getUrl();
     private static final String SIGNUP_URI = RequestUrl.SIGNUP_URI.getUrl();
     private static final String LOGIN_URI = RequestUrl.LOGIN_URI.getUrl();
