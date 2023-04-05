@@ -1,4 +1,4 @@
-package http;
+package http.constant;
 
 public enum HttpStatus {
     OK(200), REDIRECT(302);

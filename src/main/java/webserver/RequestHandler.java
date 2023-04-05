@@ -2,9 +2,11 @@ package webserver;
 
 import db.MemoryUserRepository;
 import db.Repository;
-import http.HttpRequestUtils;
-import http.IOUtils;
-import http.RequestUrl;
+import http.constant.HttpHeader;
+import http.request.HttpRequest;
+import http.util.HttpRequestUtils;
+import http.util.IOUtils;
+import http.constant.RequestUrl;
 import model.User;
 
 import java.io.*;
@@ -43,40 +45,47 @@ public class RequestHandler implements Runnable{
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            String[] lines = br.readLine().split(" ");
-            String method = lines[0];
-            String url = lines[1];
+            HttpRequest request = HttpRequest.from(br);
+
+//            String a = br.readLine();
+//            String[] lines = a.split(" ");
+////            String[] lines = br.readLine().split(" ");
+//            String method = lines[0];
+//            String url = lines[1];
+//
+//            System.out.println(a);
+
 
             int requestContentLength = 0;
             boolean cookie = false;
 
             String type = "html";
 
-            while (true) {
-                final String line = br.readLine();
-                if (line.equals("")) {
-                    break;
-                }
-                // header info
-                if (line.startsWith("Content-Length")) {
-                    requestContentLength = Integer.parseInt(line.split(": ")[1]);
-                }
-                if (line.startsWith("Cookie")) {
-                    if (line.split(": ")[1].equals("logined=true")) {
-                        cookie = true;
-                    }
-                }
-            }
+//            while (true) {
+//                final String line = br.readLine();
+//                if (line.equals("")) {
+//                    break;
+//                }
+//                // header info
+//                if (line.startsWith("Content-Length")) {
+//                    requestContentLength = Integer.parseInt(line.split(": ")[1]);
+//                }
+//                if (line.startsWith("Cookie")) {
+//                    if (line.split(": ")[1].equals("logined=true")) {
+//                        cookie = true;
+//                    }
+//                }
+//            }
 
             byte[] body = new byte[0];
 
             // 요구사항 1: index.html 반환하기
-            if (url.equals("/")) {
+            if (request.getUrl().equals("/")) {
                 body = Files.readAllBytes(Paths.get(ROOT + INDEX));
             }
 
-            if (method.equals("GET") && url.endsWith(".html")) {
-                body = Files.readAllBytes(Paths.get(ROOT + url));
+            if (request.getMethod().equals("GET") && request.getUrl().endsWith(".html")) {
+                body = Files.readAllBytes(Paths.get(ROOT + request.getUrl()));
             }
 
 //            // 요구사항 2: GET 방식으로 회원가입하기
@@ -91,8 +100,8 @@ public class RequestHandler implements Runnable{
 //            }
 
             // 요구사항 3: POST 방식으로 회원가입하기
-            if (method.equals("POST") && url.equals(SIGNUP_URI)) {
-                String query = IOUtils.readData(br, requestContentLength);
+            if (request.getMethod().equals("POST") && request.getUrl().equals(SIGNUP_URI)) {
+                String query = request.getBody();
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
                 repository.addUser(user);
@@ -103,8 +112,8 @@ public class RequestHandler implements Runnable{
             }
 
             // 요구사항 5: 로그인하기
-            if (method.equals("POST") && url.equals(LOGIN_URI)) {
-                String query = IOUtils.readData(br, requestContentLength);
+            if (request.getMethod().equals("POST") && request.getUrl().equals(LOGIN_URI)) {
+                String query = request.getBody();
                 Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter(query);
                 User user = repository.findUserById(queryParameter.get("userId"));
 
@@ -120,9 +129,9 @@ public class RequestHandler implements Runnable{
             }
 
             // 요구사항 6: 사용자 목록 출력
-            if (method.equals("GET") && url.equals(LIST_URI)) {
+            if (request.getMethod().equals("GET") && request.getUrl().equals(LIST_URI)) {
                 // 로그인이 되어있지 않은 상태
-                if (cookie == false) {
+                if (!checkCookie(request)) {
                     response302Header(dos, LOGIN_URL);
                     return;
                 }
@@ -131,9 +140,9 @@ public class RequestHandler implements Runnable{
             }
 
             // 요구사항 7: CSS 출력
-            if (url.endsWith("css")) {
+            if (request.getUrl().endsWith("css")) {
                 type = "css";
-                body = Files.readAllBytes(Paths.get(ROOT + url));
+                body = Files.readAllBytes(Paths.get(ROOT + request.getUrl()));
             }
 
             response200Header(dos, body.length, type);
@@ -142,6 +151,16 @@ public class RequestHandler implements Runnable{
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
+    }
+
+    private boolean checkCookie(HttpRequest request) {
+        if (!request.hasHeaderKey(HttpHeader.SET_COOKIE)) {
+            return false;
+        }
+        if (!request.getHeaderValue(HttpHeader.SET_COOKIE).contains("logined=true")) {
+            return false;
+        }
+        return true;
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent, String type) {

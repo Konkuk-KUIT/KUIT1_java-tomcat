@@ -1,4 +1,4 @@
-package http;
+package http.constant;
 
 public enum RequestUrl {
     ROOT("./webapp"), INDEX("/index.html"),

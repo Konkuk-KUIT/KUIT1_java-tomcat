@@ -1,4 +1,4 @@
-package http;
+package http.constant;
 
 public enum HttpMethod {
     GET("GET"), POST("POST");
@@ -7,6 +7,11 @@ public enum HttpMethod {
 
     HttpMethod(String method) {
         this.method = method;
+    }
+
+    public static HttpMethod getHttpMethod(String method) {
+        HttpMethod httpMethod = HttpMethod.valueOf(method);
+        return httpMethod;
     }
 
     public String getMethod() {
