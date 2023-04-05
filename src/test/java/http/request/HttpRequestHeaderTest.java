@@ -1,7 +1,6 @@
 package http.request;
 
 import http.constant.HttpHeader;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,13 +12,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class HttpRequestHeaderTest {
     private final String path = "./src/test/java/resources/HttpHeader.txt";
-    private HttpRequestHeader header;
+    private HttpHeaders header;
 
     @BeforeEach
     void init() throws IOException {
         InputStreamReader reader = new InputStreamReader(Files.newInputStream(Paths.get(path)));
         BufferedReader br = new BufferedReader(reader);
-        header = HttpRequestHeader.from(br);
+        header = HttpHeaders.from(br);
     }
 
     @Test

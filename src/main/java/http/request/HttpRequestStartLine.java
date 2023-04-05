@@ -33,4 +33,8 @@ public class HttpRequestStartLine {
     public String getPath() {
         return path;
     }
+
+    public String getVersion() {
+        return version;
+    }
 }

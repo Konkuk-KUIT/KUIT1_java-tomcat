@@ -8,10 +8,10 @@ import java.io.IOException;
 
 public class HttpRequest {
     private HttpRequestStartLine startLine;
-    private HttpRequestHeader header;
+    private HttpHeaders header;
     private String body;
 
-    public HttpRequest(HttpRequestStartLine startLine, HttpRequestHeader header, String body) {
+    public HttpRequest(HttpRequestStartLine startLine, HttpHeaders header, String body) {
         this.startLine = startLine;
         this.header = header;
         this.body = body;
@@ -19,13 +19,13 @@ public class HttpRequest {
 
     public static HttpRequest from(BufferedReader br) throws IOException {
         HttpRequestStartLine startLine = HttpRequestStartLine.from(br);
-        HttpRequestHeader header = HttpRequestHeader.from(br);
+        HttpHeaders header = HttpHeaders.from(br);
         String body = requestBody(br, header);
 
         return new HttpRequest(startLine, header, body);
     }
 
-    private static String requestBody(BufferedReader br, HttpRequestHeader header) throws IOException {
+    private static String requestBody(BufferedReader br, HttpHeaders header) throws IOException {
         if (!header.hasKey(HttpHeader.CONTENT_LENGTH)) {
             return "";
         }
@@ -44,8 +44,8 @@ public class HttpRequest {
         return startLine.getPath();
     }
 
-    public String getBody() {
-        return body;
+    public String getVersion() {
+        return startLine.getVersion();
     }
 
     public boolean hasHeaderKey(HttpHeader key) {
@@ -54,5 +54,9 @@ public class HttpRequest {
 
     public String getHeaderValue(HttpHeader key) {
         return header.getValue(key);
+    }
+
+    public String getBody() {
+        return body;
     }
 }

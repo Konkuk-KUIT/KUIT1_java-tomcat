@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class HttpRequestStartLineTest {
-    private String path = "./src/test/java/resources/StartLine.txt";
+    private String path = "./src/test/java/resources/HttpStartLine.txt";
 
     @Test
     void getStartLine() throws IOException {
