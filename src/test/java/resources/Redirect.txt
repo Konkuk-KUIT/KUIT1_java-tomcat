@@ -1,0 +1,3 @@
+HTTP1.1 302 Found 
+Location: /user/login.html
+
