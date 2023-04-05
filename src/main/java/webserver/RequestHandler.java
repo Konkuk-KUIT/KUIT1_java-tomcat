@@ -8,9 +8,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 public class RequestHandler implements Runnable{
     Socket connection;
@@ -30,17 +30,26 @@ public class RequestHandler implements Runnable{
             //요구사항 1
             String url = br.readLine();
             String[] info=url.split(" ");
+            for(String i:info)
+                System.out.println(i);
             String type=info[0];
+            System.out.println("info[1]");
+            System.out.println(info[1]);
+
+            String filePath=info[1];
             String fileName=info[1].split("/")[1];
 
             if (url != null) {
                 System.out.println(url);
             }
 
-            if(fileName.equals("index.html")) {
+            byte[] index = new byte[0];
+            //if(fileName.equals("index.html")) {
+            if(filePath.equals("/index.html")) {
                 try {
                     // read all bytes
-                    byte[] index = Files.readAllBytes(Paths.get("webapp/" + fileName));
+                    //index = Files.readAllBytes(Paths.get("webapp/" + fileName));
+                    index = Files.readAllBytes(Paths.get("webapp" + filePath));
 
                     // convert bytes to string
                     String content = new String(index, StandardCharsets.UTF_8);
@@ -48,8 +57,25 @@ public class RequestHandler implements Runnable{
                     // print contents
                     System.out.println(content);
 
-                    Document doc = Jsoup.parseBodyFragment(content);
-                    Element body = doc.body();
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+            }
+
+            //요구사항 2-1
+            if(filePath.equals("/user/form.html")) {
+                try {
+                    // read all bytes
+                    index = Files.readAllBytes(Paths.get("webapp" + filePath));
+
+                    // convert bytes to string
+                    String content = new String(index, StandardCharsets.UTF_8);
+
+                    // print contents
+                    System.out.println(content);
+
 
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -60,10 +86,17 @@ public class RequestHandler implements Runnable{
 //            byte[] body = "Hello World".getBytes();
 //            response200Header(dos, body.length);
 //            responseBody(dos, body);
+            response200Header(dos, index.length);
+            responseBody(dos, index);
 
         } catch (IOException e) {
             log.log(Level.SEVERE,e.getMessage());
         }
+
+        //요구사항 2-1 : form에 적은 값 가져오기
+        
+
+
     }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
