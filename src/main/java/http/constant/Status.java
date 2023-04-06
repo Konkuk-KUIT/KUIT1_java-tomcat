@@ -1,4 +1,4 @@
-package http.util.constant;
+package http.constant;
 
 public enum Status {
     OK("200 OK"), REDIRECT("302 FOUND");
