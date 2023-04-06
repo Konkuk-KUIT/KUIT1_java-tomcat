@@ -1,5 +1,6 @@
 package webserver;
 
+import db.MemoryUserRepository;
 import http.util.IOUtils;
 import model.User;
 
@@ -98,33 +99,37 @@ public class RequestHandler implements Runnable {
 
     ;
             //요구사항 2-1: form에 적은 값 가져오기
-            String fileName = info[1].split("//?")[2];
-            System.out.println(fileName);
+            log.log(Level.INFO,"log찍기");
+            String fileName = info[1];
+            String SignUpInfoURL=info[1].split("\\?")[1];
+            String[] SignUpInfos=SignUpInfoURL.split("\\&");
+            String[] SignUpInfoValues=new String[4];
+            for(int i=0;i<4;i++) {
+                SignUpInfoValues[i]=SignUpInfos[i].split("\\=")[1];
+            }
+            User user1=new User(SignUpInfoValues[0],SignUpInfoValues[1],SignUpInfoValues[2],SignUpInfoValues[3]);
+            MemoryUserRepository memoryUserRepository1=MemoryUserRepository.getInstance();
+            memoryUserRepository1.addUser(user1);
+            System.out.println("137pjy name:"+memoryUserRepository1.findUserById("137pjy").getName());
+            System.out.println("135psj name:"+memoryUserRepository1.findUserById("135psj").getName());
+            log.log(Level.INFO,"log찍기");
+
             if (filePath.contains("/user/signup")) {
-                try {
-                    System.out.println("/user/signup진입");
-                    String tmp="";
 
-                    String signUpContentLength="";
-                    while((tmp = br.readLine())!=null){
-                        System.out.println("tmp:"+tmp);
-                        if(tmp.startsWith("Content-Length")){
-                            signUpContentLength=tmp;
-                        }
-                        int signUpContentLengthInt=Integer.parseInt(signUpContentLength);
-                        String queryString = IOUtils.readData(br, signUpContentLengthInt);
-                        System.out.println(queryString);
-                        Map<String, String> queryParameter = parseQueryParameter(queryString);
-
-                    }
-
-
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
 
             }
+
+            //요구사항 3
+            //                    String signUpContentLength="";
+//                    while((tmp = br.readLine())!=null){
+//                        System.out.println("tmp:"+tmp);
+//                        if(tmp.startsWith("Content-Length")){
+//                            signUpContentLength=tmp;
+//                        }
+//                        int signUpContentLengthInt=Integer.parseInt(signUpContentLength);
+//                        String queryString = IOUtils.readData(br, signUpContentLengthInt);
+//                        System.out.println(queryString);
+//                        Map<String, String> queryParameter = parseQueryParameter(queryString);
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
         }
