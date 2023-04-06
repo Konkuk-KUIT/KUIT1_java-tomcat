@@ -12,7 +12,7 @@ import static http.constant.URL.*;
 
 public class RequestMapper {
 
-    Map<String, Controller> controllers = new HashMap<>();
+    static Map<String, Controller> controllers = new HashMap<>();
     private final HttpRequest httpRequest;
     private final HttpResponse httpResponse;
     private String url;
@@ -22,10 +22,9 @@ public class RequestMapper {
         this.httpResponse = httpResponse;
 
         url = httpRequest.getPath();
-        makeMap();
     }
 
-    private void makeMap() {
+    static  {
         controllers.put(SIGNUP_ACTION.getURL(), new SignUpController());
         controllers.put(LOGIN_ACTION.getURL(), new LoginController());
         controllers.put(USERLIST_ACTION.getURL(), new UserListController());
