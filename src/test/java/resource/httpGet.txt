@@ -1,0 +1,5 @@
+GET /user/signup?userId=test&password=test&name=test&email=test@test HTTP/1.1
+Host: localhost
+Connection: keep-alive
+Accept: */*
+

@@ -50,6 +50,7 @@ public class RequestHandler implements Runnable {
             String cookie = "";
 
             while (!requestLine.equals("")) {
+                System.out.println(requestLine);
                 requestLine = br.readLine();
                 if (requestLine.contains("Content-Length")) {
                     contentLength = getContentLength(requestLine);

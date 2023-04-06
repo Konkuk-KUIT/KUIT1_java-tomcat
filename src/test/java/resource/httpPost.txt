@@ -1,0 +1,9 @@
+POST /user/login HTTP/1.1
+Host: localhost
+Connection: keep-alive
+Content-Length: 11
+Content-Type: application/x-www-form-urlencoded
+Accept: */*
+
+/user/signup?userId=test&password=test&name=test&email=test@test
+
