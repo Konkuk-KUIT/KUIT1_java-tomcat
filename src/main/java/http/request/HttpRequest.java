@@ -74,7 +74,7 @@ public class HttpRequest {
     }
 
     public Map<String, String> getQuery() {
-        if(body.contains("\\?"))
+        if(startLine.getQueries() != null)
             return startLine.getQueries();
 
         return HttpRequestUtils.parseQueryParameter(body);
