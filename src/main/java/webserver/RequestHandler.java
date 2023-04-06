@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class RequestHandler implements Runnable {
             System.out.println("info[1]"+info[1]);
 
             String filePath = info[1];
-            String fileName = info[1].split("/")[1];
+
 
             if (url != null) {
                 System.out.println("url : "+url);
@@ -97,14 +98,26 @@ public class RequestHandler implements Runnable {
 
     ;
             //요구사항 2-1: form에 적은 값 가져오기
+            String fileName = info[1].split("//?")[2];
+            System.out.println(fileName);
             if (filePath.contains("/user/signup")) {
                 try {
                     System.out.println("/user/signup진입");
-                    int signUpContentLength = br.readLine().length();
-                    System.out.println(signUpContentLength);
-                    String queryString = IOUtils.readData(br, signUpContentLength);
-                    System.out.println(queryString);
-                    Map<String, String> queryParameter = parseQueryParameter(queryString);
+                    String tmp="";
+
+                    String signUpContentLength="";
+                    while((tmp = br.readLine())!=null){
+                        System.out.println("tmp:"+tmp);
+                        if(tmp.startsWith("Content-Length")){
+                            signUpContentLength=tmp;
+                        }
+                        int signUpContentLengthInt=Integer.parseInt(signUpContentLength);
+                        String queryString = IOUtils.readData(br, signUpContentLengthInt);
+                        System.out.println(queryString);
+                        Map<String, String> queryParameter = parseQueryParameter(queryString);
+
+                    }
+
 
 
                 } catch (IOException ex) {
