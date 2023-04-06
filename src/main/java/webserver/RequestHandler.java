@@ -26,7 +26,7 @@ public class RequestHandler implements Runnable {
     private static final String LOGIN_URL = "/user/login.html";
     private static final String LIST_URL = "/user/list.html";
     private final Repository repository;
-    private final Path homePath = Paths.get(ROOT_URL + HOME_URL);
+    private final Path defaultPath = Paths.get(ROOT_URL + HOME_URL);
 
     public RequestHandler(Socket connection) {
         this.connection = connection;
@@ -40,13 +40,12 @@ public class RequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            String requestLine = br.readLine(); //
-            String[] tokens = requestLine.split(" "); // 분리
-            String method = tokens[0];
-            String url = tokens[1];
+            String requestLine = br.readLine(); // 첫 줄을 읽고
+            String[] tokens = requestLine.split(" "); // 공백단위로 분리
+            String method = tokens[0]; // get, post, ...
+            String url = tokens[1]; // url
 
             byte[] body = new byte[0];
-
             int contentLength = 0;
             String cookie = "";
 
@@ -60,43 +59,45 @@ public class RequestHandler implements Runnable {
                 }
             }
 
-            if (method.equals("GET") && url.endsWith(".html")) { // 01. index.html 반환
+            if (method.equals("GET") && url.endsWith(".html")) {
+                // .html 을 요청하는 경우 해당 경로를 Byte 로 만들어 준 다음 outputStream 으로
                 body = Files.readAllBytes(Paths.get(ROOT_URL + url));
             }
-            if (url.equals("/")) {
-                body = Files.readAllBytes(homePath);
+            if (url.equals("/")) { // default
+                body = Files.readAllBytes(defaultPath);
             }
-            if (url.equals("/user/signup")) {
+            if (url.equals("/user/signup")) { // 회원가입
                 String httpBody = IOUtils.readData(br, contentLength);
                 Map<String, String> parasMap = parseQueryParameter(httpBody);
 
-                String userId = parasMap.get("userId");
-                String password = parasMap.get("password");
-                String name = parasMap.get("name");
-                String email = parasMap.get("email");
-
-                repository.addUser(new User(userId, password, name, email));
-
+                repository.addUser(new User(
+                        parasMap.get("userId"),
+                        parasMap.get("password"),
+                        parasMap.get("name"),
+                        parasMap.get("email")
+                ));
                 response302Header(dos, HOME_URL);
                 return;
             }
-
-            if (url.equals("/user/login")) {
+            if (url.equals("/user/login")) { // 로그인 페이지
                 String httpBody = IOUtils.readData(br, contentLength);
                 Map<String, String> parasMap = parseQueryParameter(httpBody);
                 User user = repository.findUserById(parasMap.get("userId"));
                 logIn(dos, parasMap, user);
                 return;
             }
-
             if (url.equals("/user/userList")) {
-                if (!cookie.equals("logined=true")) {
-                    response302Header(dos, LOGIN_URL);
+                if (!cookie.equals("logined=true")) { // 로그인한 상태가 아니라면
+                    response302Header(dos, LOGIN_URL); // 로그인 페이지로
                     return;
                 }
                 body = Files.readAllBytes(Paths.get(ROOT_URL + LIST_URL));
             }
-
+            if (url.endsWith(".css")) {
+                response200CssHeader(dos, body.length);
+                responseBody(dos, body);
+                return;
+            }
             response200Header(dos, body.length);
             responseBody(dos, body);
         } catch (IOException e) {
@@ -105,7 +106,7 @@ public class RequestHandler implements Runnable {
     }
 
     private void logIn(DataOutputStream dos, Map<String, String> queryParams, User user) {
-        if (user.getPassword().equals(queryParams.get("password"))) {
+        if (user != null && user.getPassword().equals(queryParams.get("password"))) {
             response302HeaderWithCookie(dos, HOME_URL);
         }
         response302Header(dos, LOGIN_FAILED_URL);
@@ -117,6 +118,7 @@ public class RequestHandler implements Runnable {
 
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
+        // HTTP 200 OK 는 요청이 성공했음을 나타내는 성공 응답 상태 코드입니다. 200 응답은 기본적으로 캐시 가능합니다.
         try {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
@@ -127,7 +129,20 @@ public class RequestHandler implements Runnable {
         }
     }
 
+    private void response200CssHeader(DataOutputStream dos, int lengthOfBodyContent) {
+        // HTTP 200 OK 는 요청이 성공했음을 나타내는 성공 응답 상태 코드입니다. 200 응답은 기본적으로 캐시 가능합니다.
+        try {
+            dos.writeBytes("HTTP/1.1 200 OK \r\n");
+            dos.writeBytes("Content-Type: text/css\r\n");
+            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
     private void response302Header(DataOutputStream dos, String path) {
+        //  302 Found 리디렉션 상태 응답 코드는 요청한 리소스가 Location (en-US) 헤더에 지정된 URL 으로 일시적으로 이동되었음을 나타냅니다.
         try {
             dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
             dos.writeBytes("Location: " + path + "\r\n");

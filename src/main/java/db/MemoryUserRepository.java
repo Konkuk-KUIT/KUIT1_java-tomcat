@@ -15,7 +15,7 @@ public class MemoryUserRepository implements Repository{
 
     public static MemoryUserRepository getInstance() {
         if (memoryUserRepository == null) {
-            memoryUserRepository = new MemoryUserRepository();
+            memoryUserRepository = new MemoryUserRepository(); // singleton
             return memoryUserRepository;
         }
         return memoryUserRepository;
