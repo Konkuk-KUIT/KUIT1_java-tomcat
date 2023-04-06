@@ -1,6 +1,7 @@
 package webserver;
 
 import db.MemoryUserRepository;
+import db.Repository;
 import http.util.IOUtils;
 import model.User;
 
@@ -23,9 +24,12 @@ import static http.util.HttpRequestUtils.parseQueryParameter;
 public class RequestHandler implements Runnable {
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
-
+    private final Repository repository;
+    private static final String HOME_URL = "/index.html";
+    
     public RequestHandler(Socket connection) {
         this.connection = connection;
+        repository =  MemoryUserRepository.getInstance();
     }
 
     @Override
@@ -55,17 +59,11 @@ public class RequestHandler implements Runnable {
             //if(fileName.equals("index.html")) {
             if (filePath.equals("/index.html")) {
                 try {
-                    // read all bytes
-                    //index = Files.readAllBytes(Paths.get("webapp/" + fileName));
                     index = Files.readAllBytes(Paths.get("webapp" + filePath));
 
-                    // convert bytes to string
                     String content = new String(index, StandardCharsets.UTF_8);
 
-                    // print contents
                     System.out.println(content);
-
-
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -75,27 +73,19 @@ public class RequestHandler implements Runnable {
             //요구사항 2-1
             if (filePath.equals("/user/form.html")) {
                 try {
-                    // read all bytes
                     index = Files.readAllBytes(Paths.get("webapp" + filePath));
 
-                    // convert bytes to string
                     String content = new String(index, StandardCharsets.UTF_8);
 
-                    // print contents
                     System.out.println(content);
-
-
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
 
             }
 
-//            byte[] body = "Hello World".getBytes();
-//            response200Header(dos, body.length);
-//            responseBody(dos, body);
-            response200Header(dos, index.length);
-            responseBody(dos, index);
+//            response200Header(dos, index.length);
+//            responseBody(dos, index);
 
     ;
             //요구사항 2-1: form에 적은 값 가져오기
@@ -108,11 +98,9 @@ public class RequestHandler implements Runnable {
                 SignUpInfoValues[i]=SignUpInfos[i].split("\\=")[1];
             }
             User user1=new User(SignUpInfoValues[0],SignUpInfoValues[1],SignUpInfoValues[2],SignUpInfoValues[3]);
-            MemoryUserRepository memoryUserRepository1=MemoryUserRepository.getInstance();
-            memoryUserRepository1.addUser(user1);
-            System.out.println("137pjy name:"+memoryUserRepository1.findUserById("137pjy").getName());
-            System.out.println("135psj name:"+memoryUserRepository1.findUserById("135psj").getName());
-            log.log(Level.INFO,"log찍기");
+            repository.addUser(user1);
+            log.log(Level.INFO,"write log");
+//            response302Header(dos,HOME_URL);
 
             if (filePath.contains("/user/signup")) {
 
@@ -154,6 +142,16 @@ public class RequestHandler implements Runnable {
             dos.writeBytes("HTTP/1.1 200 OK \r\n");
             dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
             dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
+
+    private void response302Header(DataOutputStream dos, String path) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: " + path + "\r\n");
             dos.writeBytes("\r\n");
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
