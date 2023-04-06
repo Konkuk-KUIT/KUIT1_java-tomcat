@@ -24,4 +24,18 @@ class HttpRequestUtilsTest {
     void parseQueryZero() {
         Map<String, String> queryParameter = HttpRequestUtils.parseQueryParameter("");
     }
+
+    @Test
+    void parseCookie() {
+        Map<String, String> cookies = HttpRequestUtils.parseCookie("logined=true");
+        assertEquals("true",cookies.get("logined"));
+    }
+
+    @Test
+    void parseCookieMany() {
+        Map<String, String> cookies = HttpRequestUtils.parseCookie("logined=true;jessionId=123");
+        assertEquals("true",cookies.get("logined"));
+        assertEquals("123",cookies.get("jessionId"));
+
+    }
 }
