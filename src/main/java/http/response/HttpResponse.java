@@ -1,20 +1,11 @@
 package http.response;
 
 import http.HttpHeaders;
-import http.constant.HttpHeader;
-import http.constant.Status;
-import http.constant.URL;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
-import static http.constant.URL.*;
-import static http.constant.Status.*;
+import static http.constant.HttpStatus.*;
 
 public class HttpResponse {
 

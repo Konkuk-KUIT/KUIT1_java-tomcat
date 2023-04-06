@@ -1,11 +1,11 @@
 package http.constant;
 
-public enum Status {
+public enum HttpStatus {
     OK("200 OK"), REDIRECT("302 FOUND");
 
     private final String status;
 
-    Status(String status) {
+    HttpStatus(String status) {
         this.status = status;
     }
 
