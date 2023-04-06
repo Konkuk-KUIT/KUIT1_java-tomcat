@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -15,8 +16,6 @@ import java.util.logging.Logger;
 import static http.util.HttpRequestUtils.parseQueryParameter;
 
 public class HttpRequest {
-    private String path;
-    private String method;
     private RequestLine requestLine;
     private static final Logger logger = Logger.getLogger(HttpRequest.class.getName());
     // header 정보와 parameter 들은 hashmap 으료 관리
@@ -28,8 +27,10 @@ public class HttpRequest {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(input));
             String line = br.readLine();
+            if (line == null) {
+                return;
+            }
             requestLine = new RequestLine(line);
-
             line = br.readLine();
             while (!line.equals("")) {
                 String[] tokens = line.split(":");
@@ -37,7 +38,7 @@ public class HttpRequest {
                 line = br.readLine();
             }
 
-            if (method.equals("POST")) {
+            if (requestLine.getMethod().isPost()) {
                 /*
                 POST /test HTTP/1.1
                 Host: foo.example
@@ -48,11 +49,15 @@ public class HttpRequest {
                  */
                 String body = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
                 params = parseQueryParameter(body);
+
+            } else {
+                params = requestLine.getParams();
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, e.getMessage());
         }
     }
+
     public HttpMethod getMethod() {
         return requestLine.getMethod();
     }

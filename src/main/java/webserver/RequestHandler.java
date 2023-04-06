@@ -2,7 +2,7 @@ package webserver;
 
 import db.MemoryUserRepository;
 import db.Repository;
-import http.util.IOUtils;
+
 import model.User;
 import webserver.http.HttpMethod;
 
@@ -11,11 +11,10 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static http.util.HttpRequestUtils.parseQueryParameter;
 
 
 public class RequestHandler implements Runnable {
@@ -42,54 +41,47 @@ public class RequestHandler implements Runnable {
             DataOutputStream dos = new DataOutputStream(out);
 
             HttpRequest request = new HttpRequest(in);
-
-            byte[] body = new byte[0];
-            int contentLength = 0;
-            String cookie = "";
-            String path = request.getPath();
-            if(!request.getMethod().isPost()&&path.endsWith(".html")){
-                body = Files.readAllBytes(Paths.get(ROOT_URL + path));
+            String path = getDefaultPath(request.getPath());
+            HttpMethod method = request.getMethod();
+            if (path.equals("/user/signup")) {
+                User user = new User(
+                        request.getParameter("userId"),
+                        request.getParameter("password"),
+                        request.getParameter("name"),
+                        request.getParameter("email")
+                );
+                repository.addUser(user);
+                response302Resource(out, HOME_URL);
             }
-            if (path.equals("/")) { // default
-                body = Files.readAllBytes(defaultPath);
-            }
-            if (path.equals("/user/signup")) { // 회원가입
-                String httpBody = IOUtils.readData(br, contentLength);
-                Map<String, String> parasMap = parseQueryParameter(httpBody);
-
-                repository.addUser(new User(
-                        parasMap.get("userId"),
-                        parasMap.get("password"),
-                        parasMap.get("name"),
-                        parasMap.get("email")
-                ));
-                response302Header(dos, HOME_URL);
-                return;
-            }
-            if (path.equals("/user/login")) { // 로그인 페이지
-                String httpBody = IOUtils.readData(br, contentLength);
-                Map<String, String> parasMap = parseQueryParameter(httpBody);
-                User user = repository.findUserById(parasMap.get("userId"));
-                logIn(dos, parasMap, user);
-                return;
-            }
-            if (path.equals("/user/userList")) {
-                if (!cookie.equals("logined=true")) { // 로그인한 상태가 아니라면
-                    response302Header(dos, LOGIN_URL); // 로그인 페이지로
-                    return;
+            if (path.equals("/user/login")) {
+                String userId = request.getParameter("userId");
+                User user = repository.findUserById(userId);
+                if (user != null && user.getPassword().equals(request.getParameter("password"))) {
+                    response302ResourceWithCookie(out, HOME_URL);
                 }
-                body = Files.readAllBytes(Paths.get(ROOT_URL + LIST_URL));
+                response302Resource(out, LOGIN_FAILED_URL);
+            } else if (path.endsWith(".css")) {
+                responseCssResource(out, path);
+            } else {
+                response200Resource(out, path);
             }
-            if (path.endsWith(".css")) {
-                response200CssHeader(dos, body.length);
-                responseBody(dos, body);
-                return;
-            }
-            response200Header(dos, body.length);
-            responseBody(dos, body);
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
         }
+    }
+
+    private void responseCssResource(OutputStream out, String url) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        byte[] body = Files.readAllBytes(new File(ROOT_URL + url).toPath());
+        response200CssHeader(dos, body.length);
+        responseBody(dos, body);
+    }
+
+    private String getDefaultPath(String path) {
+        if (path.equals("/")) {
+            return HOME_URL;
+        }
+        return path;
     }
 
     private void logIn(DataOutputStream dos, Map<String, String> queryParams, User user) {
@@ -102,7 +94,6 @@ public class RequestHandler implements Runnable {
     private int getContentLength(String requestLine) {
         return Integer.parseInt(requestLine.split(": ")[1]);
     }
-
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
         // HTTP 200 OK 는 요청이 성공했음을 나타내는 성공 응답 상태 코드입니다. 200 응답은 기본적으로 캐시 가능합니다.
@@ -157,5 +148,25 @@ public class RequestHandler implements Runnable {
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
         }
+    }
+
+    private void response200Resource(OutputStream out, String url) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        byte[] body = Files.readAllBytes(new File(ROOT_URL + url).toPath());
+        response200Header(dos, body.length);
+        responseBody(dos, body);
+    }
+
+    private void response302Resource(OutputStream out, String url) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        byte[] body = Files.readAllBytes(new File(ROOT_URL + url).toPath());
+        response302Header(dos, url);
+        responseBody(dos, body);
+    }
+    private void response302ResourceWithCookie(OutputStream out, String url) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        byte[] body = Files.readAllBytes(new File(ROOT_URL + url).toPath());
+        response302HeaderWithCookie(dos, url);
+        responseBody(dos, body);
     }
 }

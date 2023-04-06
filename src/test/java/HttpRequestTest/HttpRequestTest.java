@@ -3,6 +3,7 @@ package HttpRequestTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import webserver.HttpRequest;
+import webserver.http.HttpMethod;
 
 import java.io.*;
 
@@ -20,7 +21,7 @@ public class HttpRequestTest {
 
         HttpRequest request = new HttpRequest(input);
 
-        String method = request.getMethod();
+        HttpMethod method = request.getMethod();
         String path = request.getPath();
         String connection = request.getHeader("Connection");
         String userId = request.getParameter("userId");
@@ -35,7 +36,7 @@ public class HttpRequestTest {
 
         HttpRequest request = new HttpRequest(input);
 
-        String method = request.getMethod();
+        HttpMethod method = request.getMethod();
         String path = request.getPath();
         String connection = request.getHeader("Connection");
         String userId = request.getParameter("userId");
