@@ -21,8 +21,8 @@ public class ListController implements Controller {
     }
 
     private boolean checkCookie(HttpRequest request) {
+        // Cookie: logined=true 확인
         if (!request.hasHeaderKey(HttpHeader.COOKIE)) {
-            System.out.println("no");
             return false;
         }
         if (!request.getHeaderValue(HttpHeader.COOKIE).contains("logined=true")) {

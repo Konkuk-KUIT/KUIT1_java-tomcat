@@ -64,7 +64,6 @@ public class HttpResponse {
     }
 
     public void setHeaderContentType(String path) {
-        System.out.println("path: " + path);
         if (path.endsWith(".css")) {
             setHeader(HttpHeader.CONTENT_TYPE.getHeader(), "text/css");
             return;

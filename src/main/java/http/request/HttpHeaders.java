@@ -42,6 +42,7 @@ public class HttpHeaders {
     }
 
     public String getValue(HttpHeader key) {
+        // 이 메서드를 사용하는 곳에서 모두 hasKey를 통해 먼저 키가 있는지 확인하고 호출해서 따로 유효성 검사를 하지 않음,,
         return header.get(key);
     }
 
