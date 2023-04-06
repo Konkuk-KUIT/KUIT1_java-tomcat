@@ -4,6 +4,7 @@ import db.MemoryUserRepository;
 import db.Repository;
 import http.util.IOUtils;
 import model.User;
+import webserver.http.HttpMethod;
 
 import java.io.*;
 import java.net.Socket;
@@ -40,34 +41,19 @@ public class RequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            String requestLine = br.readLine(); // 첫 줄을 읽고
-            String[] tokens = requestLine.split(" "); // 공백단위로 분리
-            String method = tokens[0]; // get, post, ...
-            String url = tokens[1]; // url
+            HttpRequest request = new HttpRequest(in);
 
             byte[] body = new byte[0];
             int contentLength = 0;
             String cookie = "";
-
-            while (!requestLine.equals("")) {
-                System.out.println(requestLine);
-                requestLine = br.readLine();
-                if (requestLine.contains("Content-Length")) {
-                    contentLength = getContentLength(requestLine);
-                }
-                if (requestLine.startsWith("Cookie")) {
-                    cookie = requestLine.split(": ")[1];
-                }
+            String path = request.getPath();
+            if(!request.getMethod().isPost()&&path.endsWith(".html")){
+                body = Files.readAllBytes(Paths.get(ROOT_URL + path));
             }
-
-            if (method.equals("GET") && url.endsWith(".html")) {
-                // .html 을 요청하는 경우 해당 경로를 Byte 로 만들어 준 다음 outputStream 으로
-                body = Files.readAllBytes(Paths.get(ROOT_URL + url));
-            }
-            if (url.equals("/")) { // default
+            if (path.equals("/")) { // default
                 body = Files.readAllBytes(defaultPath);
             }
-            if (url.equals("/user/signup")) { // 회원가입
+            if (path.equals("/user/signup")) { // 회원가입
                 String httpBody = IOUtils.readData(br, contentLength);
                 Map<String, String> parasMap = parseQueryParameter(httpBody);
 
@@ -80,21 +66,21 @@ public class RequestHandler implements Runnable {
                 response302Header(dos, HOME_URL);
                 return;
             }
-            if (url.equals("/user/login")) { // 로그인 페이지
+            if (path.equals("/user/login")) { // 로그인 페이지
                 String httpBody = IOUtils.readData(br, contentLength);
                 Map<String, String> parasMap = parseQueryParameter(httpBody);
                 User user = repository.findUserById(parasMap.get("userId"));
                 logIn(dos, parasMap, user);
                 return;
             }
-            if (url.equals("/user/userList")) {
+            if (path.equals("/user/userList")) {
                 if (!cookie.equals("logined=true")) { // 로그인한 상태가 아니라면
                     response302Header(dos, LOGIN_URL); // 로그인 페이지로
                     return;
                 }
                 body = Files.readAllBytes(Paths.get(ROOT_URL + LIST_URL));
             }
-            if (url.endsWith(".css")) {
+            if (path.endsWith(".css")) {
                 response200CssHeader(dos, body.length);
                 responseBody(dos, body);
                 return;

@@ -1,6 +1,7 @@
 package webserver;
 
 import http.util.IOUtils;
+import webserver.http.HttpMethod;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class HttpRequest {
             logger.log(Level.SEVERE, e.getMessage());
         }
     }
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return requestLine.getMethod();
     }
 
