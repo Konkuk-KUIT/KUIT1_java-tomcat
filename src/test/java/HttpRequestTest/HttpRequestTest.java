@@ -9,9 +9,10 @@ import java.io.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HttpRequestTest {
-    private String testRootPath = "./src/test/resource/";
+    private String testRootPath = "./src/test/java/resource/";
     private String testGetFileName = "httpGet.txt";
     private String testPostFileName = "httpPost.txt";
+    //src/test/java/resource/httpGet.txt
     @Test
     @DisplayName("HTTP GET request data 에서 정보를 잘 가져오는 지 확인")
     public void httpGetParsingTest() throws Exception {
