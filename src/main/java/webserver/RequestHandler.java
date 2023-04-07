@@ -24,6 +24,13 @@ import static http.util.HttpRequestUtils.parseQueryParameter;
 public class RequestHandler implements Runnable {
     Socket connection;
     private static final Logger log = Logger.getLogger(RequestHandler.class.getName());
+    private static final String ROOT_URL = "./webapp";
+    private static final String HOME_URL = "/index.html";
+    private static final String LOGIN_FAILED_URL = "/user/login_failed.html";
+    private static final String LOGIN_URL = "/user/login.html";
+    private static final String LIST_URL = "/user/list.html";
+
+
     private final Repository repository;
     private static final String HOME_URL = "/index.html";
     
@@ -39,103 +46,147 @@ public class RequestHandler implements Runnable {
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             DataOutputStream dos = new DataOutputStream(out);
 
-            //요구사항 1
+            byte[] body = new byte[0];
+
+//            // Header 분석
+//            String startLine = br.readLine();
+//            String[] startLines = startLine.split(" ");
+//            String method = startLines[0];
+//            String url = startLines[1];
+
+            int requestContentLength = 0;
+            String cookie = "";
+
+            while (true) {
+                final String line = br.readLine();
+                if (line.equals("")) {
+                    break;
+                }
+                // header info
+                if (line.startsWith("Content-Length")) {
+                    requestContentLength = Integer.parseInt(line.split(": ")[1]);
+                }
+
+                if (line.startsWith("Cookie")) {
+                    cookie = line.split(": ")[1];
+                }
+            }
+
+//            //요구사항 1
             String url = br.readLine();
             String[] info = url.split(" ");
-//            for (String i : info)
-//                System.out.println(i);
-            String type = info[0];
+            String method1 = info[0];
 
             System.out.println("info[1]"+info[1]);
-
             String filePath = info[1];
-
 
             if (url != null) {
                 System.out.println("url : "+url);
             }
 
-            byte[] index = new byte[0];
-            //if(fileName.equals("index.html")) {
             if (filePath.equals("/index.html")) {
                 try {
-                    index = Files.readAllBytes(Paths.get("webapp" + filePath));
-
-                    String content = new String(index, StandardCharsets.UTF_8);
-
+                    body = Files.readAllBytes(Paths.get("webapp" + filePath));
+                    String content = new String(body, StandardCharsets.UTF_8);
                     System.out.println(content);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-
+            }
+            if (filePath.equals("/")) {
+                try {
+                    body = Files.readAllBytes(Paths.get("webapp" + filePath));
+                    String content = new String(body, StandardCharsets.UTF_8);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
 
-            //요구사항 2-1
+            //요구사항 2-1 화면에 form.html 띄우기
             if (filePath.equals("/user/form.html")) {
                 try {
-                    index = Files.readAllBytes(Paths.get("webapp" + filePath));
-
-                    String content = new String(index, StandardCharsets.UTF_8);
-
-                    System.out.println(content);
+                    body = Files.readAllBytes(Paths.get("webapp" + filePath));
+                    String content = new String(body, StandardCharsets.UTF_8);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-
             }
 
-//            response200Header(dos, index.length);
-//            responseBody(dos, index);
+//            //요구사항 2-2: form에 적은 값 가져오기
+            if (filePath.equals("/user/signup")) {
+                String fileName = info[1];
+                String SignUpInfoURL=info[1].split("\\?")[1];
+                String[] SignUpInfos=SignUpInfoURL.split("&");
+                String[] SignUpInfoValues=new String[4];
+                for(int i=0;i<4;i++) {
+                    SignUpInfoValues[i]=SignUpInfos[i].split("=")[1];
+                }
+                User user1=new User(SignUpInfoValues[0],SignUpInfoValues[1],SignUpInfoValues[2],SignUpInfoValues[3]);
+                repository.addUser(user1);
+                log.log(Level.INFO,"user1 name:"+repository.findUserById("137pjy").getName());
+                response302Header(dos,HOME_URL);
 
-    ;
-            //요구사항 2-1: form에 적은 값 가져오기
-            log.log(Level.INFO,"log찍기");
-            String fileName = info[1];
-            String SignUpInfoURL=info[1].split("\\?")[1];
-            String[] SignUpInfos=SignUpInfoURL.split("\\&");
-            String[] SignUpInfoValues=new String[4];
-            for(int i=0;i<4;i++) {
-                SignUpInfoValues[i]=SignUpInfos[i].split("\\=")[1];
-            }
-            User user1=new User(SignUpInfoValues[0],SignUpInfoValues[1],SignUpInfoValues[2],SignUpInfoValues[3]);
-//            repository.addUser(user1);
-            log.log(Level.INFO,"write log");
-//            response302Header(dos,HOME_URL);
-
-            if (filePath.contains("/user/signup")) {
-
-
+                return;
             }
 
-            //요구사항 3
-            //                    String signUpContentLength="";
-//                    while((tmp = br.readLine())!=null){
-//                        System.out.println("tmp:"+tmp);
-//                        if(tmp.startsWith("Content-Length")){
-//                            signUpContentLength=tmp;
-//                        }
-//                        int signUpContentLengthInt=Integer.parseInt(signUpContentLength);
-//                        String queryString = IOUtils.readData(br, signUpContentLengthInt);
-//                        System.out.println(queryString);
-//                        Map<String, String> queryParameter = parseQueryParameter(queryString);
+
+            // 요구 사항 2,3,4번
+            if (url.equals("/user/signup")) {
+                String queryString = IOUtils.readData(br, requestContentLength);
+                Map<String, String> queryParameter = parseQueryParameter(queryString);
+                User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
+                repository.addUser(user);
+                response302Header(dos,HOME_URL);
+                return;
+            }
+
+            // 요구 사항 5번
+            if (url.equals("/user/login")) {
+                String queryString = IOUtils.readData(br, requestContentLength);
+                Map<String, String> queryParameter = parseQueryParameter(queryString);
+                User user = repository.findUserById(queryParameter.get("userId"));
+                login(dos, queryParameter, user);
+                return;
+            }
+
+            // 요구 사항 6번
+            if (url.equals("/user/userList")) {
+                if (!cookie.equals("logined=true")) {
+                    response302Header(dos,LOGIN_URL);
+                    return;
+                }
+                body = Files.readAllBytes(Paths.get(ROOT_URL + LIST_URL));
+            }
+
+            response200Header(dos,body.length);
+            responseBody(dos, body);
+
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
         }
 
     }
 
-    //요구사항 2-1 : form에 적은 값 가져오기
-//        if (url.equals("/user/signup")) {
-//            String queryString = IOUtils.readData(br, requestContentLength);
-//            Map<String, String> queryParameter = parseQueryParameter(queryString);
-//            User user = new User(queryParameter.get("userId"), queryParameter.get("password"), queryParameter.get("name"), queryParameter.get("email"));
-//            repository.addUser(user);
-//            response302Header(dos,HOME_URL);
-//            return;
-//        }
 
+    private void login(DataOutputStream dos, Map<String, String> queryParameter, User user) {
+        if (user != null && user.getPassword().equals(queryParameter.get("password"))) {
+            response302HeaderWithCookie(dos,HOME_URL);
+            return;
+        }
+        response302Header(dos,LOGIN_FAILED_URL);
+    }
 
+    private void response302HeaderWithCookie(DataOutputStream dos, String path) {
+        try {
+            dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
+            dos.writeBytes("Location: " + path + "\r\n");
+            dos.writeBytes("Set-Cookie: logined=true" + "\r\n");
 
+            dos.writeBytes("\r\n");
+        } catch (IOException e) {
+            log.log(Level.SEVERE, e.getMessage());
+        }
+    }
 
     private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
         try {
@@ -150,6 +201,7 @@ public class RequestHandler implements Runnable {
 
     private void response302Header(DataOutputStream dos, String path) {
         try {
+            log.log(Level.INFO,"response302Header enter!!");
             dos.writeBytes("HTTP/1.1 302 Redirect \r\n");
             dos.writeBytes("Location: " + path + "\r\n");
             dos.writeBytes("\r\n");
