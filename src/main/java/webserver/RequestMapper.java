@@ -20,14 +20,11 @@ public class RequestMapper {
         this.request = request;
         this.response = response;
 
-        map();
         controller = controllers.get(request.getUrl());
         if (controller == null) {
             controller = new ForwardController();
         }
-    }
-
-    public void map() {
+    } static {
         controllers.put("/", new IndexController());
         controllers.put(RequestUrl.SIGNUP_URI.getUrl(), new SignupController());
         controllers.put(RequestUrl.LOGIN_URI.getUrl(), new LoginController());
