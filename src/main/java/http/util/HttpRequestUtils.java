@@ -32,12 +32,12 @@ public class HttpRequestUtils {
                 log.log(Level.INFO,key);
                 String value = keyValue.length > 1 ? keyValue[1] : ""; //value는 해당 타입에 대한 실제 데이터 정보!
                 //{key: value, key: value, key: value, key: value} 형식!
-                try{
-                    value= URLDecoder.decode(value,"UTF-8");
-                    log.log(Level.INFO,value);
-                }catch (UnsupportedEncodingException e){
-                    e.printStackTrace();
-                }
+//                try{
+//                    value= URLDecoder.decode(value,"UTF-8");
+//                    log.log(Level.INFO,value);
+//                }catch (UnsupportedEncodingException e){
+//                    e.printStackTrace();
+//                }
                 paramMap.put(key,value);
             }
         }

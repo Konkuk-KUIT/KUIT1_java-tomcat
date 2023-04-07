@@ -3,6 +3,7 @@ package webserver;
 import db.MemoryUserRepository;
 import db.Repository;
 import http.util.HttpRequestUtils;
+import http.util.IOUtils;
 import model.User;
 import responsefactory.ResponseBody;
 import responsefactory.ResponseHeader;
@@ -10,6 +11,7 @@ import responsefactory.ResponseHeader;
 import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static http.util.IOUtils.*;
 
 public class RequestHandler implements Runnable{
     Socket connection;
@@ -70,17 +74,48 @@ public class RequestHandler implements Runnable{
                 responseHeader.response200Header(dos, body.length);
                 responseBody.responseBody(dos, body);
 
+            }else if(method.equalsIgnoreCase("POST")&&path.startsWith("/user/signup")){
+
+                /**
+                 *  회원 가입 요청 처리 - POST 방식으로 들어온 경우
+                 *  localhost/user/signup 으로 들어온 경우
+                 *  응답메세지의 바디 부분에서 queryString과 content-length을 추출하여
+                 *  queryString을 key, value로 분리하여 User 객체 생성 후 사용자 DB에 저장
+                 *  헤더에 302 상태 코드 넣어서 응답메세지 반환 (홈화면으로 리다이렉트)
+                 **/
+
+                Integer contentLength = getContentLength(is);
+
+                /*** Content-Length까지 읽었다면 현재 offset 값은 바디 앞! ***/
+
+                String requestBody = readData(is,contentLength);
+                Map<String,String> paramMap = HttpRequestUtils.parseQueryParameter(requestBody);
+
+                User user=new User(paramMap.get("userId"),paramMap.get("password"),paramMap.get("name"),paramMap.get("email"));
+                userRepository.addUser(user);
+                User user1 = userRepository.findUserById("rkdduswndi");
+
+                /*** 비밀번호가 자꾸 duswn12%23으로 들어옴 ***/
+                /*** 인코딩, 디코딩 문제 ! ***/
+
+                //페이지 리다이렉팅!
+                String redirectUrl = "http://localhost:80";
+
+                responseHeader.response302Header(dos,redirectUrl);
+                body=null;
+                responseBody.responseBody(dos, body);
+
             }else if(path.startsWith("/user/signup")){
 
                 /**
-                 *  회원 가입 요청 처리
+                 *  회원 가입 요청 처리 - GET 방식으로 들어온 경우
                  *  localhost/user/signup 으로 들어온 경우
                  *  queryString을 key, value로 분리하여 User 객체 생성 후 사용자 DB에 저장
                  *  헤더에 302 상태 코드 넣어서 응답메세지 반환 (홈화면으로 리다이렉트)
                  **/
 
                 String queryString = path.length()>1 ? path.substring(path.indexOf('?')+1) : "";
-                log.log(Level.INFO,queryString);
+
                 Map<String,String> paramMap = httpRequestUtils.parseQueryString(queryString);
 
                 User user=new User(paramMap.get("userId"),paramMap.get("password"),paramMap.get("name"),paramMap.get("email"));
@@ -91,13 +126,87 @@ public class RequestHandler implements Runnable{
                 responseHeader.response302Header(dos,redirectUrl);
                 body=null;
                 responseBody.responseBody(dos, body);
+
             }
-            else {
+            else if(method.equalsIgnoreCase("POST")&&path.startsWith("/user/login")){
+
+                /**
+                 * 로그인 요청 처리
+                 *  login 버튼 눌렀을 때
+                 *  응답메세지의 바디 부분에서 queryString과 content-length를 추출하여
+                 *  알아낸 userId 이용해 레파지토리에 해당 사용자가 있는지 확인
+                 *  성공 - 헤더에 쿠키(logined-true)를 추가 후 index.html로 리다이렉트
+                 *  실패 - login_failed.html로 리다이렉트
+                 **/
+
+                Integer contentLength=getContentLength(is);
+
+                String requestBody = readData(is,contentLength);
+                Map<String,String> paramMap = httpRequestUtils.parseQueryString(requestBody);
+
+                User user = userRepository.findUserById(paramMap.get("userId"));
+
+                if(user !=null && user.getPassword().equals(paramMap.get("password"))){
+                    /*** 로그인 성공 코드 ***/
+                    String cookieValue = "logined=true";
+                    String redirectUrl = "http://localhost:80";
+                    responseHeader.response302LoginSuccessHeader(dos,cookieValue,redirectUrl);
+                    body=null;
+                    responseBody.responseBody(dos, body);
+                }else{
+                    /*** 로그인 실패 코드 ***/
+                    String redirectUrl = "http://localhost:80/user/login_failed.html";
+                    responseHeader.response302Header(dos,redirectUrl);
+                    body=null;
+                    responseBody.responseBody(dos, body);
+                }
+            }
+            else if(path.startsWith("/user/userList")){
+
+                /**
+                 * 사용자 목록 화면 요청 처리
+                 * user List 버튼 눌렀을 때
+                 * 요청 헤더에 Cookie 있는 경우 : logine-true가 되어있을 경우 user list  화면이 나온다.
+                 * 없는 경우 : login.html 화면으로 redirect 한다.
+                 */
+
+                Boolean CookieExists=checkCoockie(is);
+
+                if(CookieExists){
+                    /*** 로그인이 되어있는 경우 list.html 반환 ***/
+                    Path filePath = Paths.get("C:/Users/rkddu/KUIT Server/java-tomcat/webapp/user/list.html");
+                    body = Files.readAllBytes(filePath);
+                    responseHeader.response200Header(dos, body.length);
+                    responseBody.responseBody(dos, body);
+                }else{
+                    /*** 로그인이 안되어있는 경우 login.html로 리다이렉트 ***/
+                    String redirectUrl = "http://localhost:80/user/login.html";
+                    responseHeader.response302Header(dos,redirectUrl);
+                    body=null;
+                    responseBody.responseBody(dos, body);
+                }
+            }
+            else if(path.equalsIgnoreCase("/css/styles.css")){
+
+                /**
+                 * path 경로가 css로 들어온 경우
+                 * Content-Type을 text/css로 바꿔줘야한다.
+                 **/
+
+                Path filePath = Paths.get("C:/Users/rkddu/KUIT Server/java-tomcat/webapp" + path);
+                body = Files.readAllBytes(filePath);
+                responseHeader.responseCSS200Header(dos, body.length);
+                responseBody.responseBody(dos, body);
+
+            }else {
+
                 /**
                  *  그 외 페이지 요청 처리
+                 *  로그인 화면 호출, 회원가입 화면 호출
                  *  localhost/요청 html 파일 경로로 들어온 경우
                  *  body에 해당 html 파일을 넣고 200 상태 코드 넣어서 응답메세지 반환
                  **/
+
                 Path filePath = Paths.get("C:/Users/rkddu/KUIT Server/java-tomcat/webapp" + path);
                 body = Files.readAllBytes(filePath);
                 responseHeader.response200Header(dos, body.length);
@@ -108,7 +217,4 @@ public class RequestHandler implements Runnable{
             log.log(Level.SEVERE,e.getMessage());
         }
     }
-
-
-
 }
