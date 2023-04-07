@@ -4,14 +4,12 @@ import webserver.http.HttpMethod;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static http.util.HttpRequestUtils.parseQueryParameter;
 
 public class RequestLine {
-    private static final Logger logger = Logger.getLogger(RequestLine.class.getName());
-    private HttpMethod httpMethod;
-    private String path;
+    private final HttpMethod httpMethod;
+    private final String path;
     private Map<String, String> params = new HashMap<>();
 
     public HttpMethod getMethod() {

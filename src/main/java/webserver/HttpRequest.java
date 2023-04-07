@@ -2,12 +2,13 @@ package webserver;
 
 import http.util.IOUtils;
 import webserver.http.HttpMethod;
+import webserver.urls.urls;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.SQLOutput;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,7 +20,7 @@ public class HttpRequest {
     private RequestLine requestLine;
     private static final Logger logger = Logger.getLogger(HttpRequest.class.getName());
     // header 정보와 parameter 들은 hashmap 으료 관리
-    private Map<String, String> headers = new HashMap<>();
+    private final Map<String, String> headers = new HashMap<>();
     private Map<String, String> params = new HashMap<>();
 
 
@@ -39,17 +40,8 @@ public class HttpRequest {
             }
 
             if (requestLine.getMethod().isPost()) {
-                /*
-                POST /test HTTP/1.1
-                Host: foo.example
-                Content-Type: application/x-www-form-urlencoded
-                Content-Length: 27
-
-                field1=value1&field2=value2
-                 */
                 String body = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
                 params = parseQueryParameter(body);
-
             } else {
                 params = requestLine.getParams();
             }
@@ -73,4 +65,12 @@ public class HttpRequest {
     public String getParameter(String key) {
         return params.get(key);
     }
+
+    public String getUrl() {
+        if (requestLine.getPath().equals("/")) {
+            return urls.INDEX.getUrl();
+        }
+        return requestLine.getPath();
+    }
+
 }
