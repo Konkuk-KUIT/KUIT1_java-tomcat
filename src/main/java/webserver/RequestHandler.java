@@ -98,7 +98,7 @@ public class RequestHandler implements Runnable {
                 SignUpInfoValues[i]=SignUpInfos[i].split("\\=")[1];
             }
             User user1=new User(SignUpInfoValues[0],SignUpInfoValues[1],SignUpInfoValues[2],SignUpInfoValues[3]);
-            repository.addUser(user1);
+//            repository.addUser(user1);
             log.log(Level.INFO,"write log");
 //            response302Header(dos,HOME_URL);
 
