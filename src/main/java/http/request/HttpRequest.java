@@ -2,6 +2,8 @@ package http.request;
 
 import http.constants.HttpHeader;
 import http.constants.HttpMethod;
+import http.session.HttpSession;
+import http.session.HttpSessions;
 import http.util.HttpRequestUtils;
 
 import java.io.BufferedReader;
@@ -9,17 +11,20 @@ import java.io.IOException;
 import java.util.Map;
 
 import static http.constants.HttpHeader.CONTENT_LENGTH;
+import static http.constants.HttpHeader.COOKIE;
 import static http.util.IOUtils.readData;
 
 public class HttpRequest {
     private final HttpRequestStartLine startLine;
     private final HttpHeaders headers;
+    private final HttpCookie cookies;
     private final String body;
 
-    private HttpRequest(final HttpRequestStartLine startLine, final HttpHeaders headers, final String body) {
+    private HttpRequest(final HttpRequestStartLine startLine, final HttpHeaders headers, final String body, final HttpCookie cookies) {
         this.startLine = startLine;
         this.headers = headers;
         this.body = body;
+        this.cookies = cookies;
     }
 
     public static HttpRequest from(final BufferedReader bufferedReader) throws IOException {
@@ -31,8 +36,9 @@ public class HttpRequest {
         final HttpRequestStartLine httpRequestStartLine = HttpRequestStartLine.from(startLine);
         final HttpHeaders headers = HttpHeaders.from(bufferedReader);
         final String body = readBody(bufferedReader, headers);
+        final HttpCookie httpCookie = new HttpCookie(headers.get(COOKIE));
 
-        return new HttpRequest(httpRequestStartLine, headers, body);
+        return new HttpRequest(httpRequestStartLine, headers, body, httpCookie);
     }
 
     private static String readBody(final BufferedReader bufferedReader,
@@ -71,5 +77,17 @@ public class HttpRequest {
 
     public String getHeader(HttpHeader headerType) {
         return headers.get(headerType);
+    }
+
+    public String getCookie(String key) {
+        return cookies.getCookie(key);
+    }
+
+    public void addCookie(String key, String value) {
+        cookies.putCookie(key, value);
+    }
+
+    public HttpSession getSession() {
+        return HttpSessions.getSession(cookies.getCookie(HttpSessions.SESSION_ID_NAME));
     }
 }

@@ -1,11 +1,14 @@
 package webserver;
 
+import http.constants.HttpHeader;
 import http.request.HttpRequest;
 import http.response.HttpResponse;
+import http.session.HttpSessions;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +30,10 @@ public class RequestHandler implements Runnable {
             HttpRequest httpRequest = HttpRequest.from(br);
             HttpResponse httpResponse = new HttpResponse(dos);
 
+            if (httpRequest.getCookie(HttpSessions.SESSION_ID_NAME) == null) {
+                setSessionId(httpRequest, httpResponse);
+            }
+
             RequestMapper requestMapper = new RequestMapper(httpRequest,httpResponse);
             requestMapper.proceed();
 
@@ -34,5 +41,11 @@ public class RequestHandler implements Runnable {
             log.log(Level.SEVERE, e.getMessage());
             System.out.println(Arrays.toString(e.getStackTrace()));
         }
+    }
+
+    private static void setSessionId(HttpRequest httpRequest, HttpResponse httpResponse) {
+        String jsessionId = UUID.randomUUID().toString();
+        httpResponse.put(HttpHeader.SET_COOKIE,"JSESSIONID=" + jsessionId);
+        httpRequest.addCookie(HttpSessions.SESSION_ID_NAME,jsessionId);
     }
 }
