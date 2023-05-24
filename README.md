@@ -1,8 +1,7 @@
 # java-tomcat
 
 
-3️⃣ [3주차 워크북 - HTTP Tomcat](https://www.notion.so/Server-3-HTTP-Tomcat-8dfa1b57af434e9184d21d44a785194d?pvs=4)
-
+3️⃣ [3주차 워크북 - HTTP Tomcat](https://fearless-texture-68a.notion.site/Server-3-HTTP-Tomcat-8dfa1b57af434e9184d21d44a785194d)
 - step1
   - index.html 반환
   - GET 방식으로 회원가입
