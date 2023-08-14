@@ -3,10 +3,10 @@ package model;
 import java.util.Objects;
 
 public class User {
-    private String userId;
-    private String password;
-    private String name;
-    private String email;
+    final private String userId;
+    final private String password;
+    final private String name;
+    final private String email;
 
     public User(String userId, String password, String name, String email) {
         this.userId = userId;
@@ -42,5 +42,10 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(getUserId(), getPassword(), getName(), getEmail());
+    }
+
+    @Override
+    public String toString(){
+        return "id="+userId+" pwd="+password+" name="+name+" email="+email;
     }
 }
