@@ -28,10 +28,10 @@ public class FrontHandler {
     private static void handlerMapping() {
         handlerMappingMap.put(INDEX.getValue(), new ForwardController());
         handlerMappingMap.put("/", new ForwardController());
-        handlerMappingMap.put(SIGNUP_FORM.getValue(), new SignUpFormHandler());
+        handlerMappingMap.put(SIGNUP_FORM.getValue(), new ForwardController());
         handlerMappingMap.put(SIGNUP.getValue(), new SignUpHandler());
-        handlerMappingMap.put(LOGIN_FORM.getValue(), new LoginFormHandler());
-        handlerMappingMap.put(USER_LOGIN_FAILED.getValue(), new LoginFailFormHandler());
+        handlerMappingMap.put(LOGIN_FORM.getValue(), new ForwardController());
+        handlerMappingMap.put(USER_LOGIN_FAILED.getValue(), new ForwardController());
         handlerMappingMap.put(LOGIN.getValue(), new LoginHandler());
         handlerMappingMap.put(USER_LIST.getValue(), new UserListHandler());
         handlerMappingMap.put(CSS.getValue(), new CssHandler());
