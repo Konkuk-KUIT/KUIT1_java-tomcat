@@ -11,7 +11,7 @@ import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class IndexHandler implements Controller {
+public class ForwardController implements Controller {
 
     private final File file = new File(WEBAPP.getValue() + INDEX.getValue());
 

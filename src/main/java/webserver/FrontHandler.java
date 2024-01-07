@@ -26,8 +26,8 @@ public class FrontHandler {
     }
 
     private static void handlerMapping() {
-        handlerMappingMap.put(INDEX.getValue(), new IndexHandler());
-        handlerMappingMap.put("/", new IndexHandler());
+        handlerMappingMap.put(INDEX.getValue(), new ForwardController());
+        handlerMappingMap.put("/", new ForwardController());
         handlerMappingMap.put(SIGNUP_FORM.getValue(), new SignUpFormHandler());
         handlerMappingMap.put(SIGNUP.getValue(), new SignUpHandler());
         handlerMappingMap.put(LOGIN_FORM.getValue(), new LoginFormHandler());
