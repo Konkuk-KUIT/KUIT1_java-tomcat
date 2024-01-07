@@ -3,7 +3,6 @@ package webserver.CustomHandler;
 import http.util.IOUtils;
 import webserver.HttpRequest;
 import webserver.HttpResponse;
-import webserver.constant.Http;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,7 +11,7 @@ import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class LoginFailFormHandler implements CustomHandler{
+public class LoginFailFormHandler implements Controller {
 
     private final File file = new File(WEBAPP.getValue() + USER_LOGIN_FAILED.getValue());
 

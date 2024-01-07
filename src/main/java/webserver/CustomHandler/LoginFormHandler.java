@@ -11,7 +11,7 @@ import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class LoginFormHandler implements CustomHandler{
+public class LoginFormHandler implements Controller {
 
     private final File file = new File(WEBAPP.getValue() + LOGIN_FORM.getValue());
 

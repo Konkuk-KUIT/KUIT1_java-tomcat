@@ -10,7 +10,7 @@ import static webserver.constant.Http.*;
 
 public class FrontHandler {
 
-    private static final Map<String, CustomHandler> handlerMappingMap = new HashMap<>();
+    private static final Map<String, Controller> handlerMappingMap = new HashMap<>();
     private static FrontHandler frontHandler;
 
     private FrontHandler() {
@@ -40,7 +40,7 @@ public class FrontHandler {
     public void service(HttpRequest request, HttpResponse response) throws IOException {
 
         String requestUri = request.getRequestUri();
-        CustomHandler handler;
+        Controller handler;
         if (requestUri.contains(CSS.getValue())) handler = handlerMappingMap.get(CSS.getValue());
         else handler = handlerMappingMap.get(request.getRequestUri());
 

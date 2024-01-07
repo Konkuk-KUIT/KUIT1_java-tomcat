@@ -12,7 +12,7 @@ import java.util.Map;
 
 import static webserver.constant.Http.*;
 
-public class UserListHandler implements CustomHandler{
+public class UserListHandler implements Controller {
 
     private final File file = new File(WEBAPP.getValue() + LIST.getValue());
 

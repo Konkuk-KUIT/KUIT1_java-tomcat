@@ -11,7 +11,7 @@ import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class SignUpFormHandler implements CustomHandler{
+public class SignUpFormHandler implements Controller {
 
     private final File file = new File(WEBAPP.getValue() + SIGNUP_FORM.getValue());
 

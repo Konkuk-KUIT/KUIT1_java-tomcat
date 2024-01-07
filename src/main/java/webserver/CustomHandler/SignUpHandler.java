@@ -4,14 +4,13 @@ import db.MemoryUserRepository;
 import model.User;
 import webserver.HttpRequest;
 import webserver.HttpResponse;
-import webserver.constant.Http;
 
 import java.io.IOException;
 import java.util.Map;
 
 import static webserver.constant.Http.*;
 
-public class SignUpHandler implements CustomHandler {
+public class SignUpHandler implements Controller {
 
     private final MemoryUserRepository repository;
 

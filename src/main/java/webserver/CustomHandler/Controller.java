@@ -5,7 +5,7 @@ import webserver.HttpResponse;
 
 import java.io.IOException;
 
-public interface CustomHandler {
+public interface Controller {
 
     byte[] process(HttpRequest request, HttpResponse response) throws IOException;
 }

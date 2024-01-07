@@ -2,13 +2,12 @@ package webserver.CustomHandler;
 
 import webserver.HttpRequest;
 import webserver.HttpResponse;
-import webserver.constant.Http;
 
 import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class CssHandler implements CustomHandler{
+public class CssHandler implements Controller {
 
     @Override
     public byte[] process(HttpRequest request, HttpResponse response) throws IOException {
