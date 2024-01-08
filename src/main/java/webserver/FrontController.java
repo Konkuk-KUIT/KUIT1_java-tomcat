@@ -8,21 +8,21 @@ import java.util.Map;
 
 import static webserver.constant.Http.*;
 
-public class FrontHandler {
+public class FrontController {
 
     private static final Map<String, Controller> handlerMappingMap = new HashMap<>();
-    private static FrontHandler frontHandler;
+    private static FrontController frontController;
 
-    private FrontHandler() {
+    private FrontController() {
     }
 
-    public static FrontHandler getInstance() {
+    public static FrontController getInstance() {
         if (handlerMappingMap.isEmpty()) {
-            frontHandler = new FrontHandler();
+            frontController = new FrontController();
             handlerMapping();
-            return frontHandler;
+            return frontController;
         }
-        return frontHandler;
+        return frontController;
     }
 
     private static void handlerMapping() {

@@ -1,13 +1,7 @@
 package webserver;
 
-import http.util.HttpRequestUtils;
-import http.util.IOUtils;
-import webserver.CustomHandler.*;
-
 import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,8 +26,8 @@ public class RequestHandler implements Runnable{
             HttpRequest httpRequest = HttpRequest.from(br);
             HttpResponse httpResponse = new HttpResponse(dos);
 
-            FrontHandler frontHandler = FrontHandler.getInstance();
-            frontHandler.service(httpRequest, httpResponse);
+            FrontController frontController = FrontController.getInstance();
+            frontController.service(httpRequest, httpResponse);
 
 
         } catch (IOException e) {
