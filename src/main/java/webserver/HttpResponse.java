@@ -1,9 +1,8 @@
 package webserver;
 
-import webserver.constant.Http;
+import http.util.IOUtils;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -21,37 +20,43 @@ public class HttpResponse {
 
     public HttpResponse(DataOutputStream dos) {
         this.dos = dos;
-    }
-
-    public void createStartLine() {
         try {
-            String result = statusCode == null ? OK.getValue() : statusCode;
-            dos.writeBytes("HTTP/1.1 " + result + " OK \r\n");
+            createStartLine();
+            createHeader();
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
         }
     }
 
-    public void createHeader() {
+    public void forward(String path) {
         try {
-            dos.writeBytes(CONTENT_TYPE.getValue() + ": " + TEXT_HTML.getValue() + "\r\n");
-            for (String s : headerMap.keySet()) {
-                dos.writeBytes(s + ": " + headerMap.get(s) + " \r\n");
-            }
+            File file = new File(path);
+            BufferedReader fr = new BufferedReader(new FileReader(file));
+            String fileData = IOUtils.readData(fr, (int) file.length());
+            responseBody(fileData.getBytes());
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
+        }
+        setHeader(CONTENT_TYPE.getValue(), TEXT_CSS.getValue());
+    }
+
+    private void createStartLine() throws IOException {
+        String result = statusCode == null ? OK.getValue() : statusCode;
+        dos.writeBytes("HTTP/1.1 " + result + " OK \r\n");
+    }
+
+    private void createHeader() throws IOException {
+        dos.writeBytes(CONTENT_TYPE.getValue() + ": " + TEXT_HTML.getValue() + "\r\n");
+        for (String s : headerMap.keySet()) {
+            dos.writeBytes(s + ": " + headerMap.get(s) + " \r\n");
         }
     }
 
-    public void responseBody(byte[] body) {
-        try {
-            dos.writeBytes(CONTENT_LENGTH.getValue() + body.length + "\r\n");
-            dos.writeBytes("\r\n");
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.log(Level.SEVERE, e.getMessage());
-        }
+    private void responseBody(byte[] body) throws IOException {
+        dos.writeBytes(CONTENT_LENGTH.getValue() + body.length + "\r\n");
+        dos.writeBytes("\r\n");
+        dos.write(body, 0, body.length);
+        dos.flush();
     }
 
     public void setHeader(String fieldName, String fieldValue) {
