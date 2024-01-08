@@ -40,15 +40,10 @@ public class FrontController {
     public void service(HttpRequest request, HttpResponse response) throws IOException {
 
         String requestUri = request.getRequestUri();
-        Controller handler;
-        if (requestUri.contains(CSS.getValue())) handler = handlerMappingMap.get(CSS.getValue());
-        else handler = handlerMappingMap.get(request.getRequestUri());
+        Controller Controller;
+        if (requestUri.contains(CSS.getValue())) Controller = handlerMappingMap.get(CSS.getValue());
+        else Controller = handlerMappingMap.get(request.getRequestUri());
 
-        byte[] bytes = handler.process(request, response);
-
-        response.createStartLine();
-        response.createHeader();
-        response.responseBody(bytes);
-
+        Controller.process(request, response);
     }
 }
