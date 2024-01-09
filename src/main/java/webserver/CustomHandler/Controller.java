@@ -7,5 +7,5 @@ import java.io.IOException;
 
 public interface Controller {
 
-    byte[] process(HttpRequest request, HttpResponse response) throws IOException;
+    void process(HttpRequest request, HttpResponse response) throws IOException;
 }
