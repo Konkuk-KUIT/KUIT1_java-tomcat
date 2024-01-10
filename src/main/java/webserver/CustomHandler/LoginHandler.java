@@ -19,28 +19,22 @@ public class LoginHandler implements Controller {
     }
 
     @Override
-    public byte[] process(HttpRequest request, HttpResponse response) throws IOException {
-        try {
-            Map<String, String> paramMap = request.getParamMap();
-            User findById = repository.findUserById(paramMap.get("userId"));
-            return passwordCheck(paramMap, findById, response);
-        } catch (NullPointerException e) {
-            setStatusCodeAndLocation(USER_LOGIN_FAILED.getValue(), response);
-            return USER_LOGIN_FAILED.getValue().getBytes();
+    public void process(HttpRequest request, HttpResponse response) throws IOException {
+        Map<String, String> paramMap = request.getParamMap();
+        User findById = repository.findUserById(paramMap.get("userId"));
+        if (findById == null) {
+            response.redirect(USER_LOGIN_FAILED.getValue());
+            return;
         }
+        passwordCheck(paramMap, findById, response);
     }
 
-    private static byte[] passwordCheck(Map<String, String> paramMap, User findById, HttpResponse response) {
+    private void passwordCheck(Map<String, String> paramMap, User findById, HttpResponse response) throws IOException {
         if (!findById.getPassword().equals(paramMap.get("password"))) {
-            return USER_LOGIN_FAILED.getValue().getBytes();
+            response.forward(USER_LOGIN_FAILED.getValue());
+            return;
         }
-        setStatusCodeAndLocation(INDEX.getValue(), response);
-        response.setHeader(SET_COOKIE.getValue(), LOGINED_TRUE.getValue());
-        return INDEX.getValue().getBytes();
-    }
-
-    private static void setStatusCodeAndLocation(String location, HttpResponse response) {
-        response.setStatusCode(FOUND.getValue());
-        response.setHeader(LOCATION.getValue(), location);
+        response.addHeader(SET_COOKIE.getValue(), LOGINED_TRUE.getValue());
+        response.redirect(INDEX.getValue());
     }
 }

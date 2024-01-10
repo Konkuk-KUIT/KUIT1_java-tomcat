@@ -19,25 +19,17 @@ public class SignUpHandler implements Controller {
     }
 
     @Override
-    public byte[] process(HttpRequest request, HttpResponse response) throws IOException {
+    public void process(HttpRequest request, HttpResponse response) throws IOException {
         Map<String, String> paramMap = request.getParamMap();
 
         User user = new User(
                 paramMap.get("userId"),
                 paramMap.get("password"),
                 paramMap.get("name"),
-                paramMap.get("email")
-        );
+                paramMap.get("email"));
 
         repository.addUser(user);
 
-        setStatusCodeAndLocation(INDEX.getValue(), response);
-
-        return INDEX.getValue().getBytes();
-    }
-
-    private static void setStatusCodeAndLocation(String location, HttpResponse response) {
-        response.setStatusCode(FOUND.getValue());
-        response.setHeader(LOCATION.getValue(), location);
+        response.redirect(INDEX.getValue());
     }
 }
