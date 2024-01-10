@@ -21,7 +21,7 @@ public class LoginHandler implements Controller {
     @Override
     public void process(HttpRequest request, HttpResponse response) throws IOException {
         String paramUserId = request.getParamValue("userId");
-        String paramPassword = request.getParamValue("paramPassword");
+        String paramPassword = request.getParamValue("password");
 
         User findById = repository.findUserById(paramUserId);
         if (findById == null) {
