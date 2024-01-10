@@ -75,7 +75,7 @@ public class HttpRequest {
         return paramMap;
     }
 
-    public Map<String, String> getHeaderMap() {
-        return headerMap;
+    public String getHeader(String headerName) {
+        return headerMap.get(headerName);
     }
 }
