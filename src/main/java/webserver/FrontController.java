@@ -28,22 +28,20 @@ public class FrontController {
     private static void handlerMapping() {
         handlerMappingMap.put(INDEX.getValue(), new ForwardController());
         handlerMappingMap.put("/", new ForwardController());
-        handlerMappingMap.put(SIGNUP_FORM.getValue(), new ForwardController());
         handlerMappingMap.put(SIGNUP.getValue(), new SignUpHandler());
-        handlerMappingMap.put(LOGIN_FORM.getValue(), new ForwardController());
-        handlerMappingMap.put(USER_LOGIN_FAILED.getValue(), new ForwardController());
         handlerMappingMap.put(LOGIN.getValue(), new LoginHandler());
-        handlerMappingMap.put(USER_LIST.getValue(), new UserListHandler());
-        handlerMappingMap.put(CSS.getValue(), new CssHandler());
+        handlerMappingMap.put(LIST.getValue(), new UserListHandler());
     }
 
     public void service(HttpRequest request, HttpResponse response) throws IOException {
+        getController(request).process(request, response);
+    }
 
-        String requestUri = request.getRequestUri();
-        Controller Controller;
-        if (requestUri.contains(CSS.getValue())) Controller = handlerMappingMap.get(CSS.getValue());
-        else Controller = handlerMappingMap.get(request.getRequestUri());
-
-        Controller.process(request, response);
+    private Controller getController(HttpRequest request) {
+        Controller controller = handlerMappingMap.get(request.getRequestUri());
+        if (controller == null) {
+            return new ForwardController();
+        }
+        return controller;
     }
 }
