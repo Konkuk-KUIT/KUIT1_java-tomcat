@@ -71,8 +71,8 @@ public class HttpRequest {
         return requestUri;
     }
 
-    public Map<String, String> getParamMap() {
-        return paramMap;
+    public String getParamValue(String key) {
+        return paramMap.get(key);
     }
 
     public String getHeader(String headerName) {

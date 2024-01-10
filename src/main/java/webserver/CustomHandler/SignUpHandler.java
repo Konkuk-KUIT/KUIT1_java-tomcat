@@ -20,13 +20,11 @@ public class SignUpHandler implements Controller {
 
     @Override
     public void process(HttpRequest request, HttpResponse response) throws IOException {
-        Map<String, String> paramMap = request.getParamMap();
-
         User user = new User(
-                paramMap.get("userId"),
-                paramMap.get("password"),
-                paramMap.get("name"),
-                paramMap.get("email"));
+                request.getParamValue("userId"),
+                request.getParamValue("password"),
+                request.getParamValue("name"),
+                request.getParamValue("email"));
 
         repository.addUser(user);
 

@@ -20,17 +20,19 @@ public class LoginHandler implements Controller {
 
     @Override
     public void process(HttpRequest request, HttpResponse response) throws IOException {
-        Map<String, String> paramMap = request.getParamMap();
-        User findById = repository.findUserById(paramMap.get("userId"));
+        String paramUserId = request.getParamValue("userId");
+        String paramPassword = request.getParamValue("paramPassword");
+
+        User findById = repository.findUserById(paramUserId);
         if (findById == null) {
             response.redirect(USER_LOGIN_FAILED.getValue());
             return;
         }
-        passwordCheck(paramMap, findById, response);
+        passwordCheck(paramPassword, findById, response);
     }
 
-    private void passwordCheck(Map<String, String> paramMap, User findById, HttpResponse response) throws IOException {
-        if (!findById.getPassword().equals(paramMap.get("password"))) {
+    private void passwordCheck(String paramPassword, User findById, HttpResponse response) throws IOException {
+        if (!findById.getPassword().equals(paramPassword)) {
             response.forward(USER_LOGIN_FAILED.getValue());
             return;
         }
