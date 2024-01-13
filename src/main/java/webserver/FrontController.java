@@ -2,37 +2,21 @@ package webserver;
 
 import http.request.HttpRequest;
 import http.response.HttpResponse;
-import webserver.CustomController.*;
+import webserver.CustomController.Controller;
+import webserver.CustomController.ForwardController;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static webserver.constant.Http.*;
 
 public class FrontController {
 
-    private static final Map<String, Controller> handlerMappingMap = new HashMap<>();
     private static FrontController frontController;
 
     private FrontController() {
     }
 
     public static FrontController getInstance() {
-        if (handlerMappingMap.isEmpty()) {
-            frontController = new FrontController();
-            handlerMapping();
-            return frontController;
-        }
+        if (frontController == null) frontController = new FrontController();
         return frontController;
-    }
-
-    private static void handlerMapping() {
-        handlerMappingMap.put(INDEX.getValue(), new ForwardController());
-        handlerMappingMap.put("/", new ForwardController());
-        handlerMappingMap.put(SIGNUP.getValue(), new SignUpController());
-        handlerMappingMap.put(LOGIN.getValue(), new LoginController());
-        handlerMappingMap.put(LIST.getValue(), new UserListController());
     }
 
     public void service(HttpRequest request, HttpResponse response) throws IOException {
@@ -40,7 +24,7 @@ public class FrontController {
     }
 
     private Controller getController(HttpRequest request) {
-        Controller controller = handlerMappingMap.get(request.getRequestUri());
+        Controller controller = RequestMapper.getController(request.getRequestUri());
         if (controller == null) {
             return new ForwardController();
         }
