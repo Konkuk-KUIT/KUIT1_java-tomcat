@@ -1,7 +1,7 @@
 package webserver.CustomHandler;
 
-import webserver.HttpRequest;
-import webserver.HttpResponse;
+import http.request.HttpRequest;
+import http.response.HttpResponse;
 
 import java.io.IOException;
 

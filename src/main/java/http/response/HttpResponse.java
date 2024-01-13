@@ -1,6 +1,7 @@
-package webserver;
+package http.response;
 
 import http.util.IOUtils;
+import webserver.RequestHandler;
 
 import java.io.*;
 import java.util.HashMap;

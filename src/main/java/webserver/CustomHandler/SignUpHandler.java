@@ -1,14 +1,13 @@
 package webserver.CustomHandler;
 
 import db.MemoryUserRepository;
+import http.request.HttpRequest;
+import http.response.HttpResponse;
 import model.User;
-import webserver.HttpRequest;
-import webserver.HttpResponse;
 
 import java.io.IOException;
-import java.util.Map;
 
-import static webserver.constant.Http.*;
+import static webserver.constant.Http.INDEX;
 
 public class SignUpHandler implements Controller {
 

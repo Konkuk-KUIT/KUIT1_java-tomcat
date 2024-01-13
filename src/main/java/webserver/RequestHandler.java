@@ -1,5 +1,8 @@
 package webserver;
 
+import http.request.HttpRequest;
+import http.response.HttpResponse;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.logging.Level;

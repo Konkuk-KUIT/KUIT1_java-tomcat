@@ -1,15 +1,14 @@
-package webserver;
+package http.request;
 
 import http.util.HttpRequestUtils;
 import http.util.IOUtils;
-import webserver.constant.Http;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static webserver.constant.Http.*;
+import static webserver.constant.Http.CONTENT_LENGTH;
 
 public class HttpRequest {
 

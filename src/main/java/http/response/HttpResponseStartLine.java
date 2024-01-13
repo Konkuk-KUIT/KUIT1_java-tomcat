@@ -1,4 +1,4 @@
-package webserver;
+package http.response;
 
 import webserver.constant.Http;
 
