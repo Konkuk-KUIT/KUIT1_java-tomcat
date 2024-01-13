@@ -1,4 +1,4 @@
-package webserver.CustomHandler;
+package webserver.CustomController;
 
 import http.request.HttpRequest;
 import http.response.HttpResponse;

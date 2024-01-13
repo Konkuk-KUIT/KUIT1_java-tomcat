@@ -1,4 +1,4 @@
-package webserver.CustomHandler;
+package webserver.CustomController;
 
 import db.MemoryUserRepository;
 import http.request.HttpRequest;
@@ -9,11 +9,11 @@ import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class LoginHandler implements Controller {
+public class LoginController implements Controller {
 
     private final MemoryUserRepository repository;
 
-    public LoginHandler() {
+    public LoginController() {
         repository = MemoryUserRepository.getInstance();
     }
 

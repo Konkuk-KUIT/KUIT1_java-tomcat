@@ -2,7 +2,7 @@ package webserver;
 
 import http.request.HttpRequest;
 import http.response.HttpResponse;
-import webserver.CustomHandler.*;
+import webserver.CustomController.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -30,9 +30,9 @@ public class FrontController {
     private static void handlerMapping() {
         handlerMappingMap.put(INDEX.getValue(), new ForwardController());
         handlerMappingMap.put("/", new ForwardController());
-        handlerMappingMap.put(SIGNUP.getValue(), new SignUpHandler());
-        handlerMappingMap.put(LOGIN.getValue(), new LoginHandler());
-        handlerMappingMap.put(LIST.getValue(), new UserListHandler());
+        handlerMappingMap.put(SIGNUP.getValue(), new SignUpController());
+        handlerMappingMap.put(LOGIN.getValue(), new LoginController());
+        handlerMappingMap.put(LIST.getValue(), new UserListController());
     }
 
     public void service(HttpRequest request, HttpResponse response) throws IOException {

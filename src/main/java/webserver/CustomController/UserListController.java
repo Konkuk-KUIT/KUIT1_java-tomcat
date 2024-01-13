@@ -1,4 +1,4 @@
-package webserver.CustomHandler;
+package webserver.CustomController;
 
 import http.request.HttpRequest;
 import http.response.HttpResponse;
@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import static webserver.constant.Http.*;
 
-public class UserListHandler implements Controller {
+public class UserListController implements Controller {
 
     @Override
     public void process(HttpRequest request, HttpResponse response) throws IOException {

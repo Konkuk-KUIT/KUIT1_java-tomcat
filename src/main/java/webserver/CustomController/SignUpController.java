@@ -1,4 +1,4 @@
-package webserver.CustomHandler;
+package webserver.CustomController;
 
 import db.MemoryUserRepository;
 import http.request.HttpRequest;
@@ -9,11 +9,11 @@ import java.io.IOException;
 
 import static webserver.constant.Http.INDEX;
 
-public class SignUpHandler implements Controller {
+public class SignUpController implements Controller {
 
     private final MemoryUserRepository repository;
 
-    public SignUpHandler() {
+    public SignUpController() {
         repository = MemoryUserRepository.getInstance();
     }
 
