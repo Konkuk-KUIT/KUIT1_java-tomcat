@@ -15,15 +15,15 @@ public class RequestMapper {
     }
 
     static {
-        handlerMappingMap.put(INDEX.getValue(), new ForwardController());
-        handlerMappingMap.put("/", new ForwardController());
         handlerMappingMap.put(SIGNUP.getValue(), new SignUpController());
         handlerMappingMap.put(LOGIN.getValue(), new LoginController());
         handlerMappingMap.put(LIST.getValue(), new UserListController());
     }
 
     public static Controller getController(String path) {
-        return handlerMappingMap.get(path);
+        Controller controller = handlerMappingMap.get(path);
+        return controller != null ? controller :
+                new ForwardController();
     }
 
 }

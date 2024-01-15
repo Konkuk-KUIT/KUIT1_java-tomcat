@@ -24,10 +24,6 @@ public class FrontController {
     }
 
     private Controller getController(HttpRequest request) {
-        Controller controller = RequestMapper.getController(request.getRequestUri());
-        if (controller == null) {
-            return new ForwardController();
-        }
-        return controller;
+        return RequestMapper.getController(request.getRequestUri());
     }
 }
