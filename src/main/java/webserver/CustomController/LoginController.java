@@ -23,19 +23,16 @@ public class LoginController implements Controller {
         String paramPassword = request.getParamValue("password");
 
         User findById = repository.findUserById(paramUserId);
-        if (findById == null) {
+        if (!passwordCheck(paramPassword, findById)) {
             response.redirect(USER_LOGIN_FAILED.getValue());
             return;
         }
-        passwordCheck(paramPassword, findById, response);
-    }
 
-    private void passwordCheck(String paramPassword, User findById, HttpResponse response) throws IOException {
-        if (!findById.getPassword().equals(paramPassword)) {
-            response.forward(USER_LOGIN_FAILED.getValue());
-            return;
-        }
         response.addHeader(SET_COOKIE.getValue(), LOGINED_TRUE.getValue());
         response.redirect(INDEX.getValue());
+    }
+
+    private boolean passwordCheck(String paramPassword, User findById) {
+        return findById != null && findById.getPassword().equals(paramPassword);
     }
 }
